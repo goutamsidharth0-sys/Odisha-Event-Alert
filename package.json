@@ -2,6 +2,9 @@
   "name": "odisha-event-alert",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -10,8 +13,11 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@types/better-sqlite3": "^7.6.13",
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.10.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
     "jsonwebtoken": "^9.0.3",
