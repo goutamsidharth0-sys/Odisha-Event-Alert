@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/fetch-bms",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/fetch-google-events",
+      "schedule": "0 */3 * * *"
     }
   ]
 }
