@@ -1,12 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617; /* Dark Obsidian Slate */
-  --foreground: #f8fafc; /* Warm White */
+  /* Light Theme */
+  --background: #f8fafc; /* Warm White */
+  --foreground: #0f172a; /* Slate 900 */
   --brand-navy: #0b132b; /* Midnight Navy */
   --brand-sapphire: #1c2541; /* Deep Sapphire */
   --brand-accent: #f5620f; /* Odisha Accent Orange */
   --brand-glow: #ff8c42; /* Sunset Soft Orange */
+}
+
+.dark {
+  /* Dark Theme */
+  --background: #020617; /* Dark Obsidian Slate */
+  --foreground: #f8fafc; /* Warm White */
+  --brand-navy: #0b132b; 
+  --brand-sapphire: #1c2541;
+  --brand-accent: #f5620f;
+  --brand-glow: #ff8c42;
 }
 
 @theme {
@@ -34,11 +45,14 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1c2541;
+  background: #94a3b8; /* Slate 400 for light */
   border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #1c2541;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #f5620f;
@@ -46,9 +60,13 @@ body {
 
 /* Glassmorphism utilities */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -56,10 +74,13 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .glass-panel-hover:hover {
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(245, 98, 15, 0.3);
   box-shadow: 0 10px 30px -10px rgba(245, 98, 15, 0.15);
   transform: translateY(-2px);
+}
+.dark .glass-panel-hover:hover {
+  background: rgba(15, 23, 42, 0.65);
 }
 
 /* Premium Orange Glow utilities */

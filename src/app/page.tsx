@@ -184,12 +184,12 @@ export default async function HomePage({ searchParams }: Props) {
             <span>Odisha's Dedicated Event Radar</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
             {"Discover What's Happening"}<br className="hidden sm:inline" />
             <HeroTypewriter cityName={selectedCity?.name} />
           </h1>
 
-          <p className="max-w-2xl mx-auto text-sm sm:text-base font-semibold text-slate-400 leading-relaxed">
+          <p className="max-w-2xl mx-auto text-sm sm:text-base font-semibold text-slate-600 dark:text-slate-400 leading-relaxed">
             Concerts, comedy shows, workshops, fests, nightlife gigs, cultural fests, sports tournaments, and promotions — all curated in one payment-free listing site.
           </p>
 
@@ -205,7 +205,7 @@ export default async function HomePage({ searchParams }: Props) {
                 type="text"
                 name="search"
                 placeholder={`Search fests, workshops, comedy in ${selectedCity ? selectedCity.name : "Odisha"}...`}
-                className="w-full bg-slate-900/80 backdrop-blur border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-brand-accent/50 focus:ring-1 focus:ring-brand-accent/30 transition-all font-semibold"
+                className="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-brand-accent/50 focus:ring-1 focus:ring-brand-accent/30 transition-all font-semibold"
               />
               {selectedCitySlug && <input type="hidden" name="city" value={selectedCitySlug} />}
             </div>
@@ -225,25 +225,25 @@ export default async function HomePage({ searchParams }: Props) {
             </span>
             <Link
               href={`/events?date=today${selectedCitySlug ? `&city=${selectedCitySlug}` : ""}`}
-              className="px-3.5 py-1 rounded-full border border-white/5 bg-slate-900/50 hover:bg-slate-900 text-xs font-bold text-slate-300 hover:text-white transition-all"
+              className="px-3.5 py-1 rounded-full border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all"
             >
               Today
             </Link>
             <Link
               href={`/events?date=tomorrow${selectedCitySlug ? `&city=${selectedCitySlug}` : ""}`}
-              className="px-3.5 py-1 rounded-full border border-white/5 bg-slate-900/50 hover:bg-slate-900 text-xs font-bold text-slate-300 hover:text-white transition-all"
+              className="px-3.5 py-1 rounded-full border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all"
             >
               Tomorrow
             </Link>
             <Link
               href={`/events?date=weekend${selectedCitySlug ? `&city=${selectedCitySlug}` : ""}`}
-              className="px-3.5 py-1 rounded-full border border-white/5 bg-slate-900/50 hover:bg-slate-900 text-xs font-bold text-slate-300 hover:text-white transition-all"
+              className="px-3.5 py-1 rounded-full border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all"
             >
               This Weekend
             </Link>
             <Link
               href={`/events?date=month${selectedCitySlug ? `&city=${selectedCitySlug}` : ""}`}
-              className="px-3.5 py-1 rounded-full border border-white/5 bg-slate-900/50 hover:bg-slate-900 text-xs font-bold text-slate-300 hover:text-white transition-all"
+              className="px-3.5 py-1 rounded-full border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-900 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all"
             >
               This Month
             </Link>
@@ -253,10 +253,10 @@ export default async function HomePage({ searchParams }: Props) {
 
       {/* 2. DYNAMIC HOMEPAGE CITY SELECTOR BAR */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="glass-panel p-4 rounded-3xl border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="glass-panel p-4 rounded-3xl border border-slate-200 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-2 shrink-0">
             <MapPin className="w-5 h-5 text-brand-accent animate-pulse" />
-            <span className="text-xs font-extrabold uppercase tracking-widest text-slate-300">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300">
               Select Your City:
             </span>
           </div>
@@ -271,7 +271,7 @@ export default async function HomePage({ searchParams }: Props) {
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     isActive
                       ? "bg-brand-accent/20 border border-brand-accent/30 text-brand-glow shadow shadow-brand-accent/10"
-                      : "bg-slate-900/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 text-slate-300"
+                      : "bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-900 border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 text-slate-600 dark:text-slate-300"
                   }`}
                 >
                   {c.name}
@@ -286,7 +286,7 @@ export default async function HomePage({ searchParams }: Props) {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-l-4 border-brand-accent pl-3">
               Browse Categories
             </h2>
             <Link
@@ -305,10 +305,10 @@ export default async function HomePage({ searchParams }: Props) {
                 href={getExploreUrl(cat.slug)}
                 className="flex flex-col items-center justify-center p-5 rounded-2xl glass-panel glass-panel-hover text-center space-y-3 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-900/80 border border-white/5 flex items-center justify-center text-slate-300 group-hover:text-brand-glow group-hover:bg-brand-accent/10 group-hover:border-brand-accent/20 transition-all duration-300 shadow">
+                <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:text-brand-glow group-hover:bg-brand-accent/10 group-hover:border-brand-accent/20 transition-all duration-300 shadow">
                   <CategoryIcon name={cat.icon || "Calendar"} className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-bold text-slate-200 group-hover:text-white truncate w-full">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white truncate w-full">
                   {cat.name}
                 </span>
               </Link>
@@ -323,7 +323,7 @@ export default async function HomePage({ searchParams }: Props) {
           <div className="flex flex-col space-y-6">
             <div className="flex items-center space-x-2">
               <TrendingUp className="w-5 h-5 text-brand-glow shrink-0 animate-pulse" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-l-4 border-brand-accent pl-3">
                 Featured Highlights
               </h2>
             </div>
@@ -360,8 +360,8 @@ export default async function HomePage({ searchParams }: Props) {
       {trendingEvents.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col space-y-6">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-brand-glow animate-pulse shrink-0" />
                 <span>🔥 Trending Gigs In {selectedCity ? selectedCity.name : "Odisha"}</span>
               </h3>
@@ -406,9 +406,9 @@ export default async function HomePage({ searchParams }: Props) {
       {weekendEvents.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-brand-accent/5 via-transparent to-transparent py-10 rounded-3xl border border-white/5">
           <div className="flex flex-col space-y-6 px-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-white/5 pb-4">
               <div className="space-y-1">
-                <h3 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                   <CalendarIcon className="w-5 h-5 text-brand-glow shrink-0 animate-pulse" />
                   <span>📅 Weekend Escapes (Fri - Sun)</span>
                 </h3>
@@ -457,8 +457,8 @@ export default async function HomePage({ searchParams }: Props) {
       {nightlifeGigs.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col space-y-6">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <Music className="w-5 h-5 text-brand-glow shrink-0 animate-pulse" />
                 <span>🎵 Nightlife Parties, Concerts & Standups</span>
               </h3>
@@ -503,8 +503,8 @@ export default async function HomePage({ searchParams }: Props) {
       {learningWorkshops.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col space-y-6">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <Lightbulb className="w-5 h-5 text-brand-glow shrink-0 animate-pulse" />
                 <span>💡 Creative Workshops, Seminars & Startups</span>
               </h3>
@@ -549,8 +549,8 @@ export default async function HomePage({ searchParams }: Props) {
       {culturalPublicFests.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col space-y-6">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <Compass className="w-5 h-5 text-brand-glow shrink-0 animate-pulse" />
                 <span>🏛️ Traditional Cultural Recitals, Expos & Sports</span>
               </h3>
@@ -599,7 +599,7 @@ export default async function HomePage({ searchParams }: Props) {
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <HelpCircle className="w-5 h-5 text-brand-glow shrink-0 animate-pulse" />
-                  <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+                  <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-l-4 border-brand-accent pl-3">
                     Watchlist Radar (Expected Events)
                   </h2>
                 </div>
@@ -640,7 +640,7 @@ export default async function HomePage({ searchParams }: Props) {
       {/* 11. POPULAR CITIES */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col space-y-6">
-          <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+          <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-l-4 border-brand-accent pl-3">
             Explore Popular Cities
           </h2>
 
@@ -649,7 +649,7 @@ export default async function HomePage({ searchParams }: Props) {
               <Link
                 key={city.id}
                 href={getCityUrl(city.slug)}
-                className="group relative rounded-2xl overflow-hidden glass-panel aspect-[4/3] flex flex-col justify-end p-4 border border-white/5 transition-all duration-300 hover:border-brand-accent/30 hover:scale-[1.02] shadow"
+                className="group relative rounded-2xl overflow-hidden glass-panel aspect-[4/3] flex flex-col justify-end p-4 border border-slate-200 dark:border-white/5 transition-all duration-300 hover:border-brand-accent/30 hover:scale-[1.02] shadow"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10"></div>
                 <div className="relative z-20 flex items-center space-x-1.5">
@@ -668,24 +668,24 @@ export default async function HomePage({ searchParams }: Props) {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Organizer CTA */}
-          <div className="relative rounded-3xl p-8 overflow-hidden glass-panel border border-white/10 flex flex-col justify-between space-y-6 group">
+          <div className="relative rounded-3xl p-8 overflow-hidden glass-panel border border-slate-200 dark:border-white/10 flex flex-col justify-between space-y-6 group">
             <div className="absolute -right-20 -bottom-20 w-60 h-60 rounded-full bg-brand-accent/10 filter blur-[40px] -z-10 group-hover:bg-brand-accent/15 transition-all"></div>
             <div className="space-y-3">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-glow">
                 For Event Organizers
               </span>
-              <h3 className="text-2xl font-bold text-white leading-tight">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                 Hosting an event in Odisha? <br />
                 List it on Odisha Event Alert!
               </h3>
-              <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
                 Maximize your event's reach by submitting your concert, fest, or comedy show. Showcase your details directly to active local audiences.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <Link
                 href="/submit-event"
-                className="px-6 py-3 rounded-full bg-white text-slate-950 hover:bg-brand-accent hover:text-white text-xs font-bold uppercase tracking-wider transition-all shadow"
+                className="px-6 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 hover:bg-brand-accent dark:hover:bg-brand-accent hover:text-white text-xs font-bold uppercase tracking-wider transition-all shadow"
               >
                 Submit Event Form
               </Link>
@@ -693,7 +693,7 @@ export default async function HomePage({ searchParams }: Props) {
                 href="https://wa.me/919090123456?text=Hello!%20I%20want%20to%20list%20my%20upcoming%20event%20on%20Odisha%20Event%20Alert."
                 target="_blank"
                 rel="noreferrer"
-                className="px-6 py-3 rounded-full border border-white/10 hover:border-brand-accent/30 text-slate-300 hover:text-brand-glow text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all"
+                className="px-6 py-3 rounded-full border border-slate-300 dark:border-white/10 hover:border-brand-accent/30 text-slate-600 dark:text-slate-300 hover:text-brand-glow text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all"
               >
                 <MessageCircle className="w-4 h-4 shrink-0" />
                 <span>WhatsApp Inquiry</span>
@@ -702,17 +702,17 @@ export default async function HomePage({ searchParams }: Props) {
           </div>
 
           {/* Advertiser CTA */}
-          <div className="relative rounded-3xl p-8 overflow-hidden glass-panel border border-white/10 flex flex-col justify-between space-y-6 group">
+          <div className="relative rounded-3xl p-8 overflow-hidden glass-panel border border-slate-200 dark:border-white/10 flex flex-col justify-between space-y-6 group">
             <div className="absolute -right-20 -bottom-20 w-60 h-60 rounded-full bg-brand-glow/10 filter blur-[40px] -z-10 group-hover:bg-brand-glow/15 transition-all"></div>
             <div className="space-y-3">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-glow">
                 Grow Your Brand
               </span>
-              <h3 className="text-2xl font-bold text-white leading-tight">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                 Reach Odisha’s Active <br />
                 Social Demographics!
               </h3>
-              <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
                 Connect with thousands of visitors through homepage banners, featured listings, sponsored categories, and specialized Instagram campaign promotions.
               </p>
             </div>
@@ -727,7 +727,7 @@ export default async function HomePage({ searchParams }: Props) {
                 href="https://wa.me/919090123456?text=Hello!%20I%20want%20to%20inquire%20about%20sponsorship%20and%20banner%20advertisement%20packages%20on%20Odisha%20Event%20Alert."
                 target="_blank"
                 rel="noreferrer"
-                className="px-6 py-3 rounded-full border border-white/10 hover:border-brand-accent/30 text-slate-300 hover:text-brand-glow text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all"
+                className="px-6 py-3 rounded-full border border-slate-300 dark:border-white/10 hover:border-brand-accent/30 text-slate-600 dark:text-slate-300 hover:text-brand-glow text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all"
               >
                 <MessageCircle className="w-4 h-4 shrink-0" />
                 <span>Sponsor Packages</span>
