@@ -1,10 +1,14 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-// Instantiate the Prisma Client with the SQLite adapter for the seed script
-const adapter = new PrismaBetterSqlite3({
-  url: "file:./dev.db"
+// Instantiate the Prisma Client against the Postgres database (Supabase)
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set to run the seed script.");
+}
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 const prisma = new PrismaClient({ adapter });
 
@@ -20,6 +24,7 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.lead.deleteMany();
   await prisma.subscriber.deleteMany();
+  await prisma.scanLog.deleteMany();
 
   console.log("🧹 Cleaned existing database records.");
 

@@ -393,6 +393,27 @@ export async function toggleFeaturedAction(id: string, isFeatured: boolean) {
 }
 
 // -------------------------------------------------------------
+// Admin: Auto-Scan Engine
+// -------------------------------------------------------------
+
+export async function runScanNowAction() {
+  const session = await verifyAdminSession();
+  if (!session) throw new Error("Unauthorized");
+
+  try {
+    const { runAutoScan } = await import("@/lib/scanner");
+    const summary = await runAutoScan("MANUAL");
+    revalidatePath("/");
+    revalidatePath("/events");
+    revalidatePath("/admin/dashboard/autoscan");
+    return { success: true, summary };
+  } catch (error: any) {
+    console.error("Manual scan error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// -------------------------------------------------------------
 // Admin: Event Submissions
 // -------------------------------------------------------------
 
