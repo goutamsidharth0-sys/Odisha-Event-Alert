@@ -1,28 +1,44 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import SceneGate from "@/components/scene/SceneGate";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  weight: ["400", "700"],
+  subsets: ["latin"],
+});
+
+const SITE_URL = "https://www.odishaeventalert.com";
+
 export const metadata: Metadata = {
-  title: "Odisha Event Alert — Your Odisha Event Radar",
-  description: "Find upcoming live concerts, fests, stand-up comedy shows, workshops, startup meets, offers and activities across Odisha (Bhubaneswar, Cuttack, Puri, Rourkela).",
-  keywords: "Odisha Events, Bhubaneswar Events, Concerts in Cuttack, Puri Beach Yoga, College Fests Bhubaneswar, Comedy Shows Cuttack",
+  metadataBase: new URL(SITE_URL),
+  title: "Odisha Event Alert — Odisha's Live Event Radar",
+  description:
+    "Discover verified events, workshops, expos, openings, offers, concerts, classes and community activities across Odisha (Bhubaneswar, Cuttack, Puri, Rourkela).",
+  keywords:
+    "Odisha Events, Bhubaneswar Events, Concerts in Cuttack, Open Mic Bhubaneswar, Jamming Sessions Odisha, New Openings Bhubaneswar, College Fests, Comedy Shows Cuttack",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "Odisha Event Alert — Your Odisha Event Radar",
-    description: "Discover what's happening across Odisha. Find concerts, fests, workshops, and startup meets in Bhubaneswar, Cuttack, Puri, and more.",
-    url: "https://odishaeventalert.com",
+    title: "Odisha Event Alert — Odisha's Live Event Radar",
+    description:
+      "Discover verified events, workshops, openings, offers, concerts and community activities near you — reviewed before they go live.",
+    url: SITE_URL,
     siteName: "Odisha Event Alert",
     images: [
       {
@@ -44,24 +60,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${outfit.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-brand-accent selection:text-white transition-colors duration-300">
+      <body className="min-h-full flex flex-col font-sans selection:bg-brand-accent selection:text-white">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {/* Glowing Background Radials */}
-          <div className="glow-bg-accent top-[-100px] left-[-100px]"></div>
-          <div className="glow-bg-accent top-[800px] right-[-100px] opacity-30"></div>
-          
+          <SceneGate />
           <Header />
           <main className="flex-grow">{children}</main>
           <Footer />

@@ -43,7 +43,10 @@ const KNOWN_CITIES: { name: string; district?: string }[] = [
 ];
 
 const CATEGORY_RULES: { keywords: string[]; name: string; slug: string; icon: string }[] = [
-  { keywords: ["comedy", "standup", "stand-up", "open mic"], name: "Comedy", slug: "comedy", icon: "Smile" },
+  { keywords: ["open mic", "open-mic", "poetry", "spoken word", "storytelling night"], name: "Open Mic Events", slug: "open-mic", icon: "Mic" },
+  { keywords: ["jam session", "jamming", "acoustic night", "music circle", "indie jam"], name: "Jamming Sessions", slug: "jamming", icon: "Guitar" },
+  { keywords: ["grand opening", "now open", "new opening", "soft launch", "grand launch"], name: "New Openings", slug: "new-openings", icon: "Store" },
+  { keywords: ["comedy", "standup", "stand-up"], name: "Comedy", slug: "comedy", icon: "Smile" },
   { keywords: ["dj", "edm", "club night", "party", "nightlife"], name: "DJ Nights", slug: "dj-nights", icon: "Disc" },
   { keywords: ["concert", "music", "live", "band", "singer", "gig"], name: "Concerts", slug: "concerts", icon: "Music" },
   { keywords: ["workshop", "masterclass", "bootcamp", "training"], name: "Workshops", slug: "workshops", icon: "Compass" },

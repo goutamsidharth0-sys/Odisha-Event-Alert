@@ -1,49 +1,58 @@
 import React from "react";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import EventCard from "@/components/EventCard";
-import { Calendar, MapPin, Ticket, ShieldCheck, Share2, Phone, Mail, Globe, Sparkles, MessageCircle } from "lucide-react";
+import TiltCard from "@/components/TiltCard";
+import Rise from "@/components/Rise";
+import RegisterInterestPanel from "@/components/RegisterInterestPanel";
+import SaveShareButtons from "@/components/SaveShareButtons";
+import MobileRegisterBar from "@/components/MobileRegisterBar";
+import { OeaVerifiedBadge, WatchlistBadge, priceLabel } from "@/components/badges";
+import {
+  Calendar,
+  MapPin,
+  Ticket,
+  Clock,
+  IndianRupee,
+  Phone,
+  Mail,
+  Globe,
+  Sparkles,
+  Flag,
+  ExternalLink,
+} from "lucide-react";
+
+const SITE_URL = "https://www.odishaeventalert.com";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const event = await prisma.event.findUnique({
+    where: { slug },
+    select: { title: true, shortDescription: true, description: true, posterUrl: true },
+  });
+  if (!event) return { title: "Event not found — Odisha Event Alert" };
+  const description = event.shortDescription || event.description.substring(0, 160);
+  return {
+    title: `${event.title} | Odisha Event Alert`,
+    description,
+    alternates: { canonical: `${SITE_URL}/events/${slug}` },
+    openGraph: {
+      title: event.title,
+      description,
+      url: `${SITE_URL}/events/${slug}`,
+      images: event.posterUrl ? [{ url: event.posterUrl }] : undefined,
+    },
+  };
+}
+
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
-  
-  // Classification badge helper
-  const getClassificationBadge = (type: string) => {
-    switch (type ? type.toUpperCase() : "PUBLIC") {
-      case "GOVERNMENT":
-        return (
-          <span className="bg-gradient-to-r from-emerald-500/90 to-teal-500/90 border border-emerald-400/20 text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow">
-            GOVT INITIATIVE
-          </span>
-        );
-      case "PRIVATE":
-        return (
-          <span className="bg-gradient-to-r from-purple-600/90 to-fuchsia-600/90 border border-purple-500/20 text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow">
-            PRIVATE GIG
-          </span>
-        );
-      case "SOCIAL":
-        return (
-          <span className="bg-gradient-to-r from-rose-500/90 to-pink-500/90 border border-rose-400/20 text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow">
-            SOCIAL EVENT
-          </span>
-        );
-      case "PUBLIC":
-      default:
-        return (
-          <span className="bg-gradient-to-r from-cyan-500/90 to-blue-500/90 border border-cyan-400/20 text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow">
-            PUBLIC EVENT
-          </span>
-        );
-    }
-  };
 
-  // 1. Fetch Event with relations
   const event = await prisma.event.findUnique({
     where: { slug },
     include: {
@@ -58,30 +67,31 @@ export default async function EventDetailPage({ params }: Props) {
   }
 
   // Increment views count asynchronously (fire and forget)
-  prisma.event.update({
-    where: { id: event.id },
-    data: { viewsCount: { increment: 1 } },
-  }).catch(() => {});
+  prisma.event
+    .update({ where: { id: event.id }, data: { viewsCount: { increment: 1 } } })
+    .catch(() => {});
 
-  // 2. Fetch Related Events (same city or same category, excluding current event)
-  const relatedEvents = await prisma.event.findMany({
-    where: {
-      status: "PUBLISHED",
-      id: { not: event.id },
-      OR: [
-        { categoryId: event.categoryId },
-        { cityId: event.cityId },
-      ],
-    },
-    include: {
-      category: { select: { name: true, slug: true } },
-      city: { select: { name: true, slug: true } },
-    },
-    take: 3,
-    orderBy: { startDate: "asc" },
-  });
+  const [relatedEvents, cities] = await Promise.all([
+    prisma.event.findMany({
+      where: {
+        status: "PUBLISHED",
+        id: { not: event.id },
+        OR: [{ categoryId: event.categoryId }, { cityId: event.cityId }],
+      },
+      include: {
+        category: { select: { name: true, slug: true } },
+        city: { select: { name: true, slug: true } },
+      },
+      take: 3,
+      orderBy: { startDate: "asc" },
+    }),
+    prisma.city.findMany({
+      where: { status: "ACTIVE" },
+      select: { name: true, slug: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
-  // 3. Format Date
   const startDateObj = new Date(event.startDate);
   const formattedStartDate = startDateObj.toLocaleDateString("en-IN", {
     weekday: "long",
@@ -89,7 +99,6 @@ export default async function EventDetailPage({ params }: Props) {
     month: "long",
     day: "numeric",
   });
-
   const formattedEndDate = event.endDate
     ? new Date(event.endDate).toLocaleDateString("en-IN", {
         weekday: "long",
@@ -99,341 +108,294 @@ export default async function EventDetailPage({ params }: Props) {
       })
     : null;
 
-  // 4. Generate JSON-LD Schema Markup
+  const canonical = `${SITE_URL}/events/${event.slug}`;
   const eventSchema = {
     "@context": "https://schema.org",
     "@type": "Event",
-    "name": event.title,
-    "description": event.shortDescription || event.description.substring(0, 150),
-    "startDate": event.startDate.toISOString(),
-    "endDate": event.endDate ? event.endDate.toISOString() : event.startDate.toISOString(),
-    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-    "eventStatus": "https://schema.org/EventScheduled",
-    "image": [
-      event.posterUrl || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800"
-    ],
-    "location": {
+    name: event.title,
+    description: event.shortDescription || event.description.substring(0, 150),
+    startDate: event.startDate.toISOString(),
+    endDate: event.endDate ? event.endDate.toISOString() : event.startDate.toISOString(),
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    url: canonical,
+    image: [event.posterUrl || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800"],
+    location: {
       "@type": "Place",
-      "name": event.venueName,
-      "address": {
+      name: event.venueName,
+      address: {
         "@type": "PostalAddress",
-        "addressLocality": event.city.name,
-        "addressRegion": "Odisha",
-        "addressCountry": "IN"
-      }
+        addressLocality: event.city.name,
+        addressRegion: "Odisha",
+        addressCountry: "IN",
+      },
     },
-    "offers": {
+    offers: {
       "@type": "Offer",
-      "price": event.minPrice || 0,
-      "priceCurrency": "INR",
-      "availability": "https://schema.org/InStock",
-      "url": event.registrationUrl || ""
+      price: event.minPrice || 0,
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      url: event.ticketingUrl || event.registrationUrl || canonical,
     },
-    "organizer": {
+    organizer: {
       "@type": "Organization",
-      "name": event.organizer?.name || "Odisha Event Alert",
-      "url": event.organizer?.websiteUrl || ""
-    }
+      name: event.organizer?.name || "Odisha Event Alert",
+      url: event.organizer?.websiteUrl || SITE_URL,
+    },
   };
 
   const isWatchlist = event.status === "WATCHLIST";
+  const isPaid = event.priceType === "PAID";
+  const poster =
+    event.posterUrl ||
+    event.bannerUrl ||
+    (isWatchlist
+      ? "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=1600&auto=format&fit=crop"
+      : "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop");
+
+  const reportMailto = `mailto:contact@odishaeventalert.com?subject=${encodeURIComponent(
+    `Report listing: ${event.slug}`
+  )}&body=${encodeURIComponent(
+    `I want to report incorrect details for the event "${event.title}" (${canonical}).\n\nWhat's wrong:\n`
+  )}`;
 
   return (
-    <div className="pb-20 space-y-12">
-      {/* Dynamic SEO JSON-LD Script Injection */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
-      />
+    <div className="pb-28 lg:pb-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }} />
 
-      {/* COVER HERO IMAGE HEADER */}
-      <section className="relative h-[250px] md:h-[450px] w-full overflow-hidden">
-        {/* Cover Photo */}
-        <div className="absolute inset-0 bg-slate-950/60 z-10"></div>
-        <img
-          src={
-            event.bannerUrl || event.posterUrl || (isWatchlist
-              ? "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=1600&auto=format&fit=crop"
-              : "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop")
-          }
-          alt={event.title}
-          className="w-full h-full object-cover blur-sm opacity-50 scale-105"
-        />
-
-        {/* Floating Content Layout */}
-        <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent pt-20 pb-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-4 max-w-4xl">
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="bg-brand-accent text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow-lg shadow-brand-accent/20">
-                  {event.category.name}
-                </span>
-                {getClassificationBadge(event.organizerType)}
-                {isWatchlist ? (
-                  <span className="bg-orange-500 text-slate-950 text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow animate-pulse">
-                    DETAILS AWAITED
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
+          {/* LEFT: event content */}
+          <Rise as="article">
+            <div className="glass-panel rounded-3xl overflow-hidden">
+              {/* Poster hero */}
+              <div className="relative aspect-[16/8.5] overflow-hidden bg-brand-navy">
+                <img src={poster} alt={event.title} className="w-full h-full object-cover" />
+                <div className="absolute top-3.5 left-3.5 flex gap-2 flex-wrap pr-24">
+                  {event.isVerified && <OeaVerifiedBadge className="backdrop-blur bg-emerald-950/60" />}
+                  {isWatchlist && <WatchlistBadge className="backdrop-blur bg-amber-950/50" />}
+                  <span className="font-mono text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-950/70 backdrop-blur text-white">
+                    {event.category.name}
                   </span>
-                ) : (
-                  <span className="bg-emerald-500 text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full shadow">
-                    CONFIRMED LISTING
-                  </span>
-                )}
-                {event.isVerified && (
-                  <span className="bg-slate-900 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Verified Details</span>
-                  </span>
-                )}
-              </div>
-
-              {/* Title */}
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                {event.title}
-              </h1>
-
-              {/* Quick Info Grid */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-slate-300">
-                <div className="flex items-center space-x-1.5">
-                  <Calendar className="w-4 h-4 text-brand-accent shrink-0" />
-                  <span>{formattedStartDate}</span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <MapPin className="w-4 h-4 text-brand-accent shrink-0" />
-                  <span>
-                    {event.venueName}, {event.city.name}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Price Badge */}
-            <div className="glass-panel p-4 rounded-2xl border border-white/10 shrink-0 flex flex-col justify-center min-w-44 text-center">
-              <span className="text-[10px] uppercase font-extrabold tracking-widest text-slate-500 mb-1">
-                Entry Tickets
-              </span>
-              <div className="text-xl font-black text-brand-glow">
-                {event.priceType === "FREE" && <span className="text-emerald-400">FREE</span>}
-                {event.priceType === "REGISTRATION_REQUIRED" && <span className="text-cyan-400">REGISTER REQUIRED</span>}
-                {event.priceType === "NOT_ANNOUNCED" && <span className="text-slate-400">TBA</span>}
-                {event.priceType === "PAID" && (
-                  <span>
-                    ₹{event.minPrice} {event.maxPrice ? ` - ₹${event.maxPrice}` : ""}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CORE DETAILS LAYOUT */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-          {/* Main Description */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="glass-panel p-8 rounded-3xl border border-white/5 space-y-6">
-              <h2 className="text-lg font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
-                About the Event
-              </h2>
-              <div className="text-sm font-semibold text-slate-300 leading-relaxed space-y-4 whitespace-pre-line">
-                {event.description}
-              </div>
-            </div>
-
-            {/* Disclaimer Box */}
-            <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-3xl space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-glow">
-                Disclaimer
-              </h4>
-              <p className="text-[11px] font-semibold text-slate-400 leading-relaxed">
-                Odisha Event Alert is an event discovery and directory platform. Event schedules, line-ups, ticket pricing, and entry rules are subject to change by the official organizers without prior notice. Please always verify the final schedule and safety measures with the organizers directly before attending.
-              </p>
-            </div>
-          </div>
-
-          {/* Booking / Details Sidebar */}
-          <aside className="space-y-6 lg:sticky lg:top-24">
-            {/* Primary Booking Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-5 text-center">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                {isWatchlist ? "Event Status" : "Get Your Entry Pass"}
-              </h3>
-
-              {isWatchlist ? (
-                <div className="space-y-4">
-                  <div className="bg-slate-900 border border-orange-500/20 p-4 rounded-2xl text-xs font-semibold text-slate-300 text-left">
-                    🚩 This is currently listed on our <strong>Watchlist Radar</strong>. The official registration links, schedule, and ticket inventory have not been released by the organizers yet.
-                  </div>
-                  <a
-                    href={`https://wa.me/919090123456?text=I%20want%20to%20get%20notified%20as%20soon%20as%20tickets/details%20go%20live%20for%20${encodeURIComponent(
-                      event.title
-                    )}.`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-3 rounded-2xl bg-orange-500 text-slate-950 hover:bg-orange-600 transition-colors text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow-lg shadow-orange-500/20"
+                  <span
+                    className={`font-mono text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md backdrop-blur text-white ${
+                      isPaid ? "bg-brand-accent/90" : "bg-emerald-600/90"
+                    }`}
                   >
-                    <MessageCircle className="w-4 h-4 shrink-0" />
-                    <span>Get Alerts on WhatsApp</span>
-                  </a>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {event.registrationUrl ? (
-                    <a
-                      href={event.registrationUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full py-3.5 rounded-2xl glow-btn text-xs font-bold uppercase tracking-wider text-white flex items-center justify-center space-x-1.5 shadow"
-                    >
-                      <Ticket className="w-4 h-4 shrink-0" />
-                      <span>Book Now / Register</span>
-                    </a>
-                  ) : (
-                    <div className="bg-slate-900 p-4 rounded-2xl text-xs font-bold text-slate-400 border border-white/5">
-                      Entry details or manual passes are handled at the physical venue.
-                    </div>
-                  )}
-                  {event.organizer?.whatsapp && (
-                    <a
-                      href={`https://wa.me/${event.organizer.whatsapp.replace(/[^0-9]/g, "")}?text=Hello!%20I%20saw%20your%20event%20"${encodeURIComponent(
-                        event.title
-                      )}"%20on%20Odisha%20Event%20Alert%20and%20had%20an%20inquiry.`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full py-3 rounded-2xl bg-emerald-500 text-slate-950 hover:bg-emerald-600 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-500/10"
-                    >
-                      <MessageCircle className="w-4 h-4 shrink-0" />
-                      <span>WhatsApp Organizer</span>
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Quick Specs Table Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/5 space-y-4">
-              <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-                Key Information
-              </h4>
-              <div className="divide-y divide-white/5 text-xs font-semibold">
-                <div className="flex justify-between py-2.5">
-                  <span className="text-slate-500">Date</span>
-                  <span className="text-white text-right">{formattedStartDate}</span>
-                </div>
-                {formattedEndDate && (
-                  <div className="flex justify-between py-2.5">
-                    <span className="text-slate-500">End Date</span>
-                    <span className="text-white text-right">{formattedEndDate}</span>
-                  </div>
-                )}
-                {event.startTime && (
-                  <div className="flex justify-between py-2.5">
-                    <span className="text-slate-500">Time</span>
-                    <span className="text-white text-right">
-                      {event.startTime} {event.endTime ? ` - ${event.endTime}` : ""}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between py-2.5">
-                  <span className="text-slate-500">Location</span>
-                  <span className="text-brand-glow text-right truncate max-w-40">
-                    {event.venueName}
+                    {isPaid ? "Paid Event" : priceLabel(event.priceType, event.minPrice)}
                   </span>
                 </div>
-                <div className="flex justify-between py-2.5">
-                  <span className="text-slate-500">City</span>
-                  <span className="text-white text-right">{event.city.name}</span>
+                <div className="absolute top-3.5 right-3.5">
+                  <SaveShareButtons slug={event.slug} title={event.title} />
                 </div>
-                <div className="flex justify-between py-2.5">
-                  <span className="text-slate-500">Event Type</span>
-                  <span className="text-white text-right uppercase">{event.eventType}</span>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 sm:p-8">
+                <h1 className="font-display text-2xl sm:text-4xl font-bold text-ink tracking-tight leading-tight mb-6">
+                  {event.title}
+                </h1>
+
+                {/* Meta grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
+                  <div className="flex gap-3 items-start rounded-2xl border border-card-line bg-chip p-3.5">
+                    <Calendar className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
+                    <div>
+                      <b className="font-display text-sm text-ink block">
+                        {formattedStartDate}
+                        {formattedEndDate ? ` – ${formattedEndDate}` : ""}
+                      </b>
+                      <span className="text-muted text-xs font-semibold">
+                        {event.startTime ? `${event.startTime}${event.endTime ? ` – ${event.endTime}` : " onwards"}` : "Timing to be announced"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start rounded-2xl border border-card-line bg-chip p-3.5">
+                    <MapPin className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
+                    <div>
+                      <b className="font-display text-sm text-ink block">{event.venueName}</b>
+                      <span className="text-muted text-xs font-semibold">
+                        {event.address ? `${event.address}, ` : ""}
+                        {event.city.name}, Odisha
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start rounded-2xl border border-card-line bg-chip p-3.5">
+                    <Clock className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
+                    <div>
+                      <b className="font-display text-sm text-ink block uppercase">{event.eventType.toLowerCase()}</b>
+                      <span className="text-muted text-xs font-semibold">{event.category.name}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 items-start rounded-2xl border border-card-line bg-chip p-3.5">
+                    <IndianRupee className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
+                    <div>
+                      <b className="font-display text-sm text-ink block">
+                        {priceLabel(event.priceType, event.minPrice)}
+                        {isPaid && event.maxPrice ? ` – ₹${event.maxPrice}` : ""}
+                      </b>
+                      <span className="text-muted text-xs font-semibold">
+                        {isPaid ? "Tickets via official source" : "Register interest on OEA"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between py-2.5">
-                  <span className="text-slate-500">Classification</span>
-                  <span className="text-white text-right uppercase">{event.organizerType}</span>
+
+                {/* About */}
+                <h2 className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-brand-accent mb-3">
+                  About this event
+                </h2>
+                <div className="text-sm font-medium text-muted leading-relaxed space-y-4 whitespace-pre-line mb-7">
+                  {event.description}
                 </div>
+
+                {/* Paid ticket-source box (blueprint §8.3) */}
+                {isPaid && (
+                  <>
+                    <h2 className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-brand-accent mb-3">
+                      Tickets for this paid event
+                    </h2>
+                    <div className="flex gap-3.5 items-start rounded-2xl border border-dashed border-brand-accent/50 bg-brand-accent/5 p-4 mb-7">
+                      <Ticket className="w-5 h-5 text-brand-accent shrink-0 mt-0.5" />
+                      <div>
+                        <b className="font-display text-sm text-ink block mb-1">
+                          Ticket source: {event.sourceName || "the official organiser"}
+                        </b>
+                        <p className="text-muted text-xs font-semibold leading-relaxed">
+                          Tickets for paid events are handled by the official organiser/source. Search this
+                          event on the official source to book paid tickets. OEA helps you track it and
+                          register interest — OEA does not sell tickets.
+                        </p>
+                        {(event.ticketingUrl || event.officialUrl) && (
+                          <a
+                            href={event.ticketingUrl || event.officialUrl || "#"}
+                            target="_blank"
+                            rel="noreferrer nofollow"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-brand-accent hover:underline mt-2"
+                          >
+                            Official ticket source <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Organiser */}
+                {event.organizer && (
+                  <>
+                    <h2 className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-brand-accent mb-3">
+                      Organiser
+                    </h2>
+                    <div className="flex items-center gap-3.5 rounded-2xl border border-card-line bg-chip p-4 mb-6">
+                      <div className="w-11 h-11 rounded-xl glow-btn grid place-items-center font-display font-bold text-white shrink-0">
+                        {event.organizer.name.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <b className="font-display text-sm text-ink block truncate">{event.organizer.name}</b>
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs font-semibold text-muted">
+                          {event.organizer.status === "VERIFIED" && <span className="text-ok">Verified organiser</span>}
+                          {event.organizer.phone && (
+                            <span className="inline-flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> {event.organizer.phone}
+                            </span>
+                          )}
+                          {event.organizer.email && (
+                            <span className="inline-flex items-center gap-1">
+                              <Mail className="w-3 h-3" /> {event.organizer.email}
+                            </span>
+                          )}
+                          {event.organizer.websiteUrl && (
+                            <a
+                              href={event.organizer.websiteUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-brand-accent hover:underline"
+                            >
+                              <Globe className="w-3 h-3" /> Website
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Disclaimer + report */}
+                <div className="bg-brand-accent/8 border border-brand-accent/20 p-5 rounded-2xl space-y-1.5 mb-4">
+                  <h4 className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-brand-accent">
+                    Disclaimer
+                  </h4>
+                  <p className="text-[11px] font-semibold text-muted leading-relaxed">
+                    Odisha Event Alert is an event discovery and registration platform — not a ticketing
+                    company. Schedules, line-ups, pricing and entry rules can change without notice; always
+                    verify final details with the organiser before attending.
+                  </p>
+                </div>
+
+                <a
+                  href={reportMailto}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-brand-accent transition-colors"
+                >
+                  <Flag className="w-3.5 h-3.5" /> Report incorrect event details
+                </a>
               </div>
             </div>
+          </Rise>
 
-            {/* Organizer Profile Card */}
-            {event.organizer && (
-              <div className="glass-panel p-6 rounded-3xl border border-white/5 space-y-4">
-                <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-                  Organizer Details
-                </h4>
-                <div className="space-y-3 text-xs font-semibold text-slate-300">
-                  <div className="text-sm font-bold text-white leading-tight">
-                    {event.organizer.name}
-                  </div>
-                  {event.organizer.phone && (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-3.5 h-3.5 text-brand-accent" />
-                      <span>{event.organizer.phone}</span>
-                    </div>
-                  )}
-                  {event.organizer.email && (
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-3.5 h-3.5 text-brand-accent" />
-                      <span>{event.organizer.email}</span>
-                    </div>
-                  )}
-                  {event.organizer.websiteUrl && (
-                    <div className="flex items-center space-x-2">
-                      <Globe className="w-3.5 h-3.5 text-brand-accent" />
-                      <a
-                        href={event.organizer.websiteUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-glow hover:underline truncate"
-                      >
-                        Visit Website
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </aside>
-        </div>
-      </section>
-
-      {/* RELATED EVENTS */}
-      {relatedEvents.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/5 pt-12 space-y-6">
-          <div className="flex items-center space-x-1.5">
-            <Sparkles className="w-5 h-5 text-brand-glow animate-pulse" />
-            <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-slate-200">
-              Related Happenings
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {relatedEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                title={event.title}
-                slug={event.slug}
-                shortDescription={event.shortDescription}
-                startDate={event.startDate}
-                endDate={event.endDate}
-                startTime={event.startTime}
-                venueName={event.venueName}
-                city={event.city}
-                category={event.category}
+          {/* RIGHT: register interest panel */}
+          <Rise delay={120}>
+            <aside id="register-panel" className="glass-panel rounded-3xl p-6 lg:sticky lg:top-24 scroll-mt-24">
+              <RegisterInterestPanel
+                eventId={event.id}
+                eventTitle={event.title}
                 priceType={event.priceType}
-                minPrice={event.minPrice}
-                posterUrl={event.posterUrl}
-                isFeatured={event.isFeatured}
-                isVerified={event.isVerified}
                 status={event.status}
-                organizerType={event.organizerType}
+                cities={cities}
               />
-            ))}
-          </div>
-        </section>
-      )}
+            </aside>
+          </Rise>
+        </div>
+
+        {/* RELATED EVENTS */}
+        {relatedEvents.length > 0 && (
+          <section className="border-t border-card-line mt-12 pt-10 space-y-6">
+            <h2 className="text-lg font-display font-bold text-ink tracking-tight flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brand-accent" />
+              Similar events on the radar
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {relatedEvents.map((rel, i) => (
+                <Rise key={rel.id} delay={i * 80}>
+                  <TiltCard className="rounded-2xl h-full">
+                    <EventCard
+                      id={rel.id}
+                      title={rel.title}
+                      slug={rel.slug}
+                      shortDescription={rel.shortDescription}
+                      startDate={rel.startDate}
+                      endDate={rel.endDate}
+                      startTime={rel.startTime}
+                      venueName={rel.venueName}
+                      city={rel.city}
+                      category={rel.category}
+                      priceType={rel.priceType}
+                      minPrice={rel.minPrice}
+                      posterUrl={rel.posterUrl}
+                      isFeatured={rel.isFeatured}
+                      isVerified={rel.isVerified}
+                      status={rel.status}
+                      organizerType={rel.organizerType}
+                    />
+                  </TiltCard>
+                </Rise>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+
+      <MobileRegisterBar priceType={event.priceType} minPrice={event.minPrice} status={event.status} />
     </div>
   );
 }

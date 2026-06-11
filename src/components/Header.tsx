@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Calendar, Search, MapPin, Menu, X, PlusCircle, Sparkles } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Search, MapPin, Menu, X, PlusCircle } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import KonarkWheel from "./scene/KonarkWheel";
 
 const CITIES = [
   { name: "All Odisha", slug: "" },
@@ -19,70 +20,77 @@ const CITIES = [
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("All Odisha");
-  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
     { name: "Explore Events", href: "/events" },
-    { name: "Submit Event", href: "/submit-event" },
     { name: "Advertise", href: "/advertise" },
-    { name: "About Us", href: "/about" },
+    { name: "About", href: "/about" },
   ];
+
+  const goToCity = (slug: string) => {
+    setMobileMenuOpen(false);
+    router.push(slug ? `/events?city=${slug}` : "/events");
+  };
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        scrolled
-          ? "bg-white/75 dark:bg-slate-950/75 backdrop-blur-md border-b border-slate-200 dark:border-white/10 shadow-lg"
-          : "bg-transparent border-b border-transparent"
-      }`}
+      className="sticky top-0 z-50 w-full transition-all duration-300 border-b"
+      style={{
+        background: scrolled ? "var(--nav-bg)" : "transparent",
+        borderColor: scrolled ? "var(--card-line)" : "transparent",
+        backdropFilter: scrolled ? "blur(16px)" : undefined,
+        WebkitBackdropFilter: scrolled ? "blur(16px)" : undefined,
+      }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center gap-4 h-[68px]">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2 group">
-              <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-accent to-brand-glow text-white shadow-md shadow-brand-accent/20 group-hover:scale-105 transition-transform duration-200">
-                <Calendar className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-glow"></span>
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-600 to-brand-glow dark:from-white dark:via-slate-100 bg-clip-text text-transparent">
-                  Odisha Event Alert
-                </span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase flex items-center gap-0.5">
-                  Your Event Radar <Sparkles className="w-2 h-2 text-brand-glow" />
-                </span>
-              </div>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            <span className="w-9 h-9 block animate-[wheel-spin_24s_linear_infinite] group-hover:scale-105 transition-transform">
+              <KonarkWheel />
+            </span>
+            <span className="flex flex-col">
+              <span className="font-display font-bold text-lg leading-none tracking-tight text-ink">
+                OE<b className="text-brand-accent">A</b>
+              </span>
+              <span className="text-[9px] text-muted font-mono tracking-[0.18em] uppercase mt-0.5 hidden sm:block">
+                Odisha Event Alert
+              </span>
+            </span>
+          </Link>
+
+          {/* Inline search (desktop) */}
+          <form action="/events" className="hidden lg:block flex-1 max-w-sm relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              name="search"
+              placeholder="Search events, venues…"
+              autoComplete="off"
+              className="w-full rounded-xl border text-sm py-2.5 pl-10 pr-4 text-ink placeholder:text-muted focus:outline-none focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 transition-all"
+              style={{ background: "var(--chip)", borderColor: "var(--card-line)" }}
+            />
+          </form>
+
+          <div className="flex-1 lg:hidden" />
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex space-x-8 items-center">
+          <nav className="hidden md:flex items-center gap-5">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm font-semibold transition-all duration-200 hover:text-brand-glow ${
-                    isActive ? "text-brand-accent font-bold" : "text-slate-600 dark:text-slate-300"
+                  className={`text-sm font-semibold transition-colors hover:text-brand-accent ${
+                    isActive ? "text-brand-accent font-bold" : "text-ink"
                   }`}
                 >
                   {link.name}
@@ -92,56 +100,48 @@ export default function Header() {
 
             {/* City Selector */}
             <div className="relative">
-              <button
-                onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors"
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-accent pointer-events-none" />
+              <select
+                aria-label="Select city"
+                defaultValue=""
+                onChange={(e) => goToCity(e.target.value)}
+                className="appearance-none rounded-full border text-xs font-bold py-2 pl-8 pr-4 text-ink cursor-pointer focus:outline-none focus:border-brand-accent"
+                style={{ background: "var(--chip)", borderColor: "var(--card-line)" }}
               >
-                <MapPin className="w-3.5 h-3.5 text-brand-accent" />
-                <span>{selectedCity}</span>
-              </button>
-              {cityDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-xl py-2 z-50">
-                  {CITIES.map((city) => (
-                    <button
-                      key={city.name}
-                      onClick={() => {
-                        setSelectedCity(city.name);
-                        setCityDropdownOpen(false);
-                        // Redirect to events with city filter
-                        window.location.href = city.slug ? `/events?city=${city.slug}` : "/events";
-                      }}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    >
-                      {city.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+                {CITIES.map((city) => (
+                  <option key={city.name} value={city.slug}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Submit Event Button */}
             <Link
               href="/submit-event"
-              className="flex items-center space-x-1.5 px-5 py-2.5 rounded-full glow-btn text-xs font-bold text-white uppercase tracking-wider"
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-full glow-btn text-xs font-bold text-white uppercase tracking-wider font-display"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>List Your Event</span>
+              <span>Submit Your Event</span>
             </Link>
-            
+
             <ThemeToggle />
           </nav>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-3">
+          {/* Mobile controls */}
+          <div className="md:hidden flex items-center gap-2.5">
             <Link
               href="/submit-event"
-              className="p-2 rounded-xl bg-gradient-to-tr from-brand-accent to-brand-glow text-white shadow"
+              aria-label="Submit your event"
+              className="p-2 rounded-xl glow-btn text-white"
             >
               <PlusCircle className="w-5 h-5" />
             </Link>
+            <ThemeToggle />
             <button
+              aria-label="Open menu"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300"
+              className="p-2 rounded-xl border text-ink"
+              style={{ background: "var(--chip)", borderColor: "var(--card-line)" }}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -151,7 +151,21 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-white/10 px-4 pt-2 pb-6 space-y-3">
+        <div
+          className="md:hidden border-b px-4 pt-3 pb-6 space-y-3 backdrop-blur-xl"
+          style={{ background: "var(--nav-bg)", borderColor: "var(--card-line)" }}
+        >
+          <form action="/events" className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              name="search"
+              placeholder="Search events, venues…"
+              autoComplete="off"
+              className="w-full rounded-xl border text-sm py-2.5 pl-10 pr-4 text-ink placeholder:text-muted focus:outline-none focus:border-brand-accent"
+              style={{ background: "var(--chip)", borderColor: "var(--card-line)" }}
+            />
+          </form>
+
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -159,8 +173,10 @@ export default function Header() {
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-3 rounded-xl text-base font-semibold hover:bg-slate-100 dark:hover:bg-white/5 ${
-                  isActive ? "bg-brand-accent/15 text-brand-glow border-l-4 border-brand-accent" : "text-slate-700 dark:text-slate-300"
+                className={`block px-4 py-3 rounded-xl text-base font-semibold transition-colors ${
+                  isActive
+                    ? "bg-brand-accent/15 text-brand-accent border-l-4 border-brand-accent"
+                    : "text-ink hover:bg-brand-accent/5"
                 }`}
               >
                 {link.name}
@@ -168,27 +184,17 @@ export default function Header() {
             );
           })}
 
-          <div className="flex items-center justify-between px-4 py-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Theme</span>
-            <ThemeToggle />
-          </div>
-
-          <div className="border-t border-slate-200 dark:border-white/5 pt-4">
-            <span className="block px-4 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+          <div className="pt-3 border-t" style={{ borderColor: "var(--card-line)" }}>
+            <span className="block px-4 text-xs font-mono font-bold uppercase tracking-[0.18em] text-muted mb-2">
               Select City
             </span>
             <div className="grid grid-cols-2 gap-2 px-2">
               {CITIES.map((city) => (
                 <button
                   key={city.name}
-                  onClick={() => {
-                    setSelectedCity(city.name);
-                    setMobileMenuOpen(false);
-                    window.location.href = city.slug ? `/events?city=${city.slug}` : "/events";
-                  }}
-                  className={`px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors ${
-                    selectedCity === city.name ? "bg-brand-accent/20 text-brand-glow" : "bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300"
-                  }`}
+                  onClick={() => goToCity(city.slug)}
+                  className="px-3 py-2 text-xs font-semibold rounded-lg text-left text-ink transition-colors hover:bg-brand-accent/10"
+                  style={{ background: "var(--chip)" }}
                 >
                   {city.name}
                 </button>

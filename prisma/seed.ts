@@ -54,8 +54,11 @@ async function main() {
     { name: "Sports", slug: "sports", description: "Marathons, tournaments, football, cricket matches", icon: "Trophy" },
     { name: "Fitness & Yoga", slug: "fitness", description: "Yoga classes, aerobic bootcamps, and health seminars", icon: "Heart" },
     { name: "Exhibitions", slug: "exhibitions", description: "Book fairs, handicraft expos, trade fairs", icon: "Layers" },
-    { name: "Offers & Sales", slug: "offers", description: "Mall offers, festive sales, food deals, discounts", icon: "Percent" },
+    { name: "Offers & Promotions", slug: "offers", description: "Launch offers, festive discounts, food deals, trial classes and local promotions", icon: "Percent" },
     { name: "Community & Startup", slug: "community", description: "Startup networking, local cleanups, social meets", icon: "Users" },
+    { name: "Jamming Sessions", slug: "jamming", description: "Casual music meetups, acoustic evenings, band jams and indie artist sessions", icon: "Guitar" },
+    { name: "Open Mic Events", slug: "open-mic", description: "Poetry, comedy, storytelling, singing and spoken word community nights", icon: "Mic" },
+    { name: "New Openings", slug: "new-openings", description: "New cafes, restaurants, gyms, studios, stores and showrooms across Odisha", icon: "Store" },
   ];
 
   const categoriesMap: { [slug: string]: any } = {};

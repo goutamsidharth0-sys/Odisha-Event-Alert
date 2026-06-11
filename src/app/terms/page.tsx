@@ -13,13 +13,13 @@ export default function TermsPage() {
           <FileText className="w-7 h-7 text-brand-accent shrink-0" />
           <span>Terms & Conditions</span>
         </h1>
-        <p className="text-xs text-slate-400 font-semibold">
+        <p className="text-xs text-muted font-semibold">
           Last Updated: May 23, 2026. Review rules for general visitors, organizers, and third-party links.
         </p>
       </div>
 
       {/* Content */}
-      <div className="glass-panel p-8 rounded-3xl border border-white/5 space-y-6 text-xs sm:text-sm font-semibold text-slate-300 leading-relaxed">
+      <div className="glass-panel p-8 rounded-3xl border border-white/5 space-y-6 text-xs sm:text-sm font-semibold text-ink leading-relaxed">
         <h3 className="text-white font-bold text-base flex items-center gap-1.5 border-b border-white/5 pb-2">
           <HelpCircle className="w-5 h-5 text-brand-glow" />
           <span>1. Platform Purpose & Discoverability</span>
@@ -38,7 +38,7 @@ export default function TermsPage() {
         <p>
           Any ticketing link, booking button, or registration gateway redirected from our pages (e.g. to BookMyShow, Townscript, or an external website) is operated entirely by third-party services:
         </p>
-        <ul className="list-disc pl-4 space-y-2 text-slate-400">
+        <ul className="list-disc pl-4 space-y-2 text-muted">
           <li>Odisha Event Alert has <strong>NO</strong> role in transaction execution, payment processing, invoice generation, or ticket inventory management.</li>
           <li>We are not liable for transaction failures, booking errors, overcharging, refunds, or financial disputes. All such support requests must be directed to the third-party platform or official event organizer.</li>
         </ul>
@@ -49,7 +49,7 @@ export default function TermsPage() {
         <p>
           When submitting an event on our `/submit-event` page, organizers represent that:
         </p>
-        <ul className="list-disc pl-4 space-y-2 text-slate-400">
+        <ul className="list-disc pl-4 space-y-2 text-muted">
           <li>All event details (timings, artists, pricing, guidelines) are 100% accurate and legal.</li>
           <li>They possess the required government clearances, security permissions, and licensing to host the event.</li>
           <li>They will immediately notify our administrative team if the event gets cancelled, rescheduled, or postponed.</li>
