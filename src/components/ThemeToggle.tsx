@@ -4,30 +4,43 @@ import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
+// Pill slider toggle: the knob carries a moon at night and a sun at dawn.
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  // Avoid hydration mismatch by waiting for mount
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { resolvedTheme, setTheme } = useTheme();
+  // Avoid hydration mismatch: false during SSR/hydration, true after
+  const mounted = React.useSyncExternalStore(
+    React.useCallback(() => () => {}, []),
+    () => true,
+    () => false
+  );
 
   if (!mounted) {
-    return <div className="w-8 h-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 opacity-50"></div>;
+    return (
+      <div
+        className="w-[60px] h-8 rounded-full border opacity-50"
+        style={{ background: "var(--chip)", borderColor: "var(--card-line)" }}
+      />
+    );
   }
+
+  const isDark = resolvedTheme === "dark";
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="relative flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors focus:outline-none"
-      aria-label="Toggle theme"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="relative w-[60px] h-8 rounded-full border cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/40 shrink-0"
+      style={{ background: "var(--chip)", borderColor: "var(--card-line)" }}
+      aria-label="Switch theme"
     >
-      {theme === "dark" ? (
-        <Sun className="h-4 w-4" />
-      ) : (
-        <Moon className="h-4 w-4" />
-      )}
+      <span
+        className="absolute top-[3px] left-[3px] w-6 h-6 rounded-full bg-brand-accent grid place-items-center text-white transition-transform duration-[450ms]"
+        style={{
+          transform: isDark ? "translateX(0)" : "translateX(28px)",
+          transitionTimingFunction: "cubic-bezier(.3,1.4,.4,1)",
+        }}
+      >
+        {isDark ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+      </span>
     </button>
   );
 }

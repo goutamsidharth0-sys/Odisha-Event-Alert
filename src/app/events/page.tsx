@@ -153,25 +153,25 @@ export default async function EventsPage({
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-glow">
           Odisha Event Directory
         </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
           Browse Upcoming Events
         </h1>
-        <p className="text-xs text-slate-400 font-semibold">
+        <p className="text-xs text-muted font-semibold">
           Showing {events.length} listings match your filters. Discover local plans and workshops.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         {/* FILTERS SIDEBAR */}
-        <aside className="lg:sticky lg:top-24 space-y-6 glass-panel p-6 rounded-3xl border border-white/10">
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
-            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-300 flex items-center space-x-1.5">
+        <aside className="lg:sticky lg:top-24 space-y-6 glass-panel p-6 rounded-3xl border border-card-line">
+          <div className="flex items-center justify-between border-b border-card-line pb-4">
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-ink flex items-center space-x-1.5">
               <SlidersHorizontal className="w-4 h-4 text-brand-accent shrink-0" />
               <span>Filters</span>
             </h3>
             <Link
               href="/events"
-              className="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-wider flex items-center space-x-1"
+              className="text-[10px] font-bold text-muted hover:text-ink uppercase tracking-wider flex items-center space-x-1"
             >
               <RefreshCw className="w-3 h-3 shrink-0" />
               <span>Clear All</span>
@@ -180,17 +180,17 @@ export default async function EventsPage({
 
           {/* Search bar */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               Keyword
             </label>
             <form action="/events" method="GET" className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
               <input
                 type="text"
                 name="search"
                 defaultValue={search || ""}
                 placeholder="Search..."
-                className="w-full bg-slate-900 border border-white/5 rounded-xl py-2 pl-9 pr-3 text-xs text-white focus:outline-none focus:border-brand-accent/50 font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl py-2 pl-9 pr-3 text-xs text-ink focus:outline-none focus:border-brand-accent/50 font-semibold"
               />
               {/* Keep other parameters in the search form */}
               {category && <input type="hidden" name="category" value={category} />}
@@ -205,14 +205,14 @@ export default async function EventsPage({
 
           {/* City Filter */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               City / Location
             </label>
             <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
               <Link
                 href={getQueryUrl({ city: "" })}
                 className={`px-3 py-2 rounded-xl text-left text-xs font-semibold ${
-                  !city ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                  !city ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                 }`}
               >
                 All Cities
@@ -222,7 +222,7 @@ export default async function EventsPage({
                   key={c.id}
                   href={getQueryUrl({ city: c.slug })}
                   className={`px-3 py-2 rounded-xl text-left text-xs font-semibold ${
-                    city === c.slug ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                    city === c.slug ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                   }`}
                 >
                   {c.name}
@@ -233,14 +233,14 @@ export default async function EventsPage({
 
           {/* Category Filter */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               Category
             </label>
             <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1">
               <Link
                 href={getQueryUrl({ category: "" })}
                 className={`px-3 py-2 rounded-xl text-left text-xs font-semibold ${
-                  !category ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                  !category ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                 }`}
               >
                 All Categories
@@ -250,7 +250,7 @@ export default async function EventsPage({
                   key={cat.id}
                   href={getQueryUrl({ category: cat.slug })}
                   className={`px-3 py-2 rounded-xl text-left text-xs font-semibold ${
-                    category === cat.slug ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                    category === cat.slug ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                   }`}
                 >
                   {cat.name}
@@ -261,7 +261,7 @@ export default async function EventsPage({
 
           {/* Date Filter */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               Date Filter
             </label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -276,7 +276,7 @@ export default async function EventsPage({
                   key={d.name}
                   href={getQueryUrl({ date: d.value })}
                   className={`px-2.5 py-2 rounded-xl text-center text-[10px] font-bold ${
-                    (date || "") === d.value ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                    (date || "") === d.value ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                   }`}
                 >
                   {d.name}
@@ -287,14 +287,14 @@ export default async function EventsPage({
 
           {/* Classification Filter */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               Event Classification
             </label>
             <div className="flex flex-col gap-1.5 pr-1">
               <Link
                 href={getQueryUrl({ classification: "" })}
                 className={`px-3 py-2 rounded-xl text-left text-xs font-semibold ${
-                  !classification ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                  !classification ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                 }`}
               >
                 All Classifications
@@ -309,7 +309,7 @@ export default async function EventsPage({
                   key={c.value}
                   href={getQueryUrl({ classification: c.value })}
                   className={`px-3 py-2 rounded-xl text-left text-xs font-semibold ${
-                    classification === c.value ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                    classification === c.value ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                   }`}
                 >
                   {c.name}
@@ -320,7 +320,7 @@ export default async function EventsPage({
 
           {/* Entry Price Filter */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               Price
             </label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -333,7 +333,7 @@ export default async function EventsPage({
                   key={p.name}
                   href={getQueryUrl({ price: p.value })}
                   className={`py-2 rounded-xl text-center text-[10px] font-bold ${
-                    (price || "") === p.value ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                    (price || "") === p.value ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                   }`}
                 >
                   {p.name}
@@ -344,7 +344,7 @@ export default async function EventsPage({
 
           {/* Status Filter */}
           <div className="space-y-2">
-            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <label className="text-[10px] font-extrabold uppercase tracking-wider text-muted">
               Listing Status
             </label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -356,7 +356,7 @@ export default async function EventsPage({
                   key={s.name}
                   href={getQueryUrl({ status: s.value })}
                   className={`py-2 rounded-xl text-center text-[10px] font-bold ${
-                    (status || "published") === s.value ? "bg-brand-accent/15 text-brand-glow border border-brand-accent/20" : "bg-slate-900/50 hover:bg-slate-900 text-slate-300"
+                    (status || "published") === s.value ? "bg-brand-accent/15 text-brand-accent border border-brand-accent/25" : "bg-chip hover:bg-brand-accent/10 text-muted"
                   }`}
                 >
                   {s.name}
@@ -369,13 +369,13 @@ export default async function EventsPage({
         {/* EVENTS LIST GRID */}
         <div className="lg:col-span-3 space-y-6">
           {/* Sorting and Grid Header */}
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
-            <div className="text-xs font-bold text-slate-400">
-              Showing <span className="text-white">{events.length}</span> upcoming plans
+          <div className="flex items-center justify-between border-b border-card-line pb-4">
+            <div className="text-xs font-bold text-muted">
+              Showing <span className="text-ink">{events.length}</span> upcoming plans
             </div>
             <div className="flex items-center space-x-2 text-xs">
               <ArrowUpDown className="w-3.5 h-3.5 text-brand-accent shrink-0" />
-              <span className="text-slate-500 font-extrabold uppercase tracking-wider text-[10px]">
+              <span className="text-muted font-extrabold uppercase tracking-wider text-[10px]">
                 Sort:
               </span>
               <div className="flex gap-1.5">
@@ -390,7 +390,7 @@ export default async function EventsPage({
                     className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors ${
                       (sort || "") === s.value
                         ? "border-brand-accent bg-brand-accent/10 text-brand-glow"
-                        : "border-white/5 hover:border-white/10 bg-slate-900/60 text-slate-400"
+                        : "border-card-line hover:border-brand-accent/30 bg-chip text-muted"
                     }`}
                   >
                     {s.name}
@@ -427,19 +427,19 @@ export default async function EventsPage({
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center p-16 rounded-3xl glass-panel border border-white/5 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-slate-500">
+            <div className="flex flex-col items-center justify-center text-center p-16 rounded-3xl glass-panel border border-card-line space-y-4">
+              <div className="w-16 h-16 rounded-full bg-chip border border-card-line flex items-center justify-center text-muted">
                 <Search className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-white">No Upcoming Events Found</h3>
-                <p className="text-xs text-slate-500 max-w-sm font-semibold leading-relaxed">
+                <h3 className="text-base font-bold text-ink">No Upcoming Events Found</h3>
+                <p className="text-xs text-muted max-w-sm font-semibold leading-relaxed">
                   We couldn't find any events matching those specific filters. Try loosening your keywords or clearing dates!
                 </p>
               </div>
               <Link
                 href="/events"
-                className="px-6 py-2.5 rounded-full glow-btn text-xs font-bold text-white uppercase tracking-wider"
+                className="px-6 py-2.5 rounded-full glow-btn text-xs font-bold text-ink uppercase tracking-wider"
               >
                 Reset Search
               </Link>

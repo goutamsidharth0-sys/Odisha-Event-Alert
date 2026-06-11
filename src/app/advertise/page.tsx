@@ -67,7 +67,7 @@ export default function AdvertisePage() {
           Promote Your Event & Brand <br />
           Across <span className="bg-gradient-to-r from-brand-accent to-brand-glow bg-clip-text text-transparent glow-text">Odisha</span>
         </h1>
-        <p className="text-xs sm:text-sm font-semibold text-slate-400 max-w-xl mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm font-semibold text-muted max-w-xl mx-auto leading-relaxed">
           Connect directly with young, active, and outgoing local demographics in Bhubaneswar, Cuttack, Puri, and other major cities. Generate high-intent bookings and brand inquiries.
         </p>
         <div className="flex justify-center pt-2">
@@ -98,7 +98,7 @@ export default function AdvertisePage() {
               </div>
               <div className="flex flex-col">
                 <span className="text-2xl font-black text-white">{met.val}</span>
-                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                <span className="text-[10px] uppercase font-bold text-muted tracking-wider">
                   {met.label}
                 </span>
               </div>
@@ -126,7 +126,7 @@ export default function AdvertisePage() {
                     {prod.metric}
                   </span>
                 </div>
-                <p className="text-[11px] font-semibold text-slate-400 leading-relaxed">
+                <p className="text-[11px] font-semibold text-muted leading-relaxed">
                   {prod.description}
                 </p>
               </div>
@@ -147,7 +147,7 @@ export default function AdvertisePage() {
               </div>
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-white">Inquiry Received Successfully!</h3>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto font-semibold leading-relaxed">
+                <p className="text-xs text-muted max-w-sm mx-auto font-semibold leading-relaxed">
                   Thank you! Our advertising lead will analyze your query and email you our complete Media Kit and Pricing Packages within 2 hours.
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default function AdvertisePage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs font-bold text-slate-400">
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs font-bold text-muted">
               {error && (
                 <div className="flex items-start space-x-2 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-400 font-semibold leading-relaxed">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -169,7 +169,7 @@ export default function AdvertisePage() {
 
               {/* Name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-wider text-slate-300">
+                <label className="text-[10px] uppercase tracking-wider text-ink">
                   Full Name *
                 </label>
                 <input
@@ -184,7 +184,7 @@ export default function AdvertisePage() {
               <div className="grid grid-cols-2 gap-4">
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-300">
+                  <label className="text-[10px] uppercase tracking-wider text-ink">
                     Phone Number *
                   </label>
                   <input
@@ -197,7 +197,7 @@ export default function AdvertisePage() {
                 </div>
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-300">
+                  <label className="text-[10px] uppercase tracking-wider text-ink">
                     Email Address *
                   </label>
                   <input
@@ -212,7 +212,7 @@ export default function AdvertisePage() {
 
               {/* Company name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-wider text-slate-300">
+                <label className="text-[10px] uppercase tracking-wider text-ink">
                   Company / Organization Name
                 </label>
                 <input
@@ -225,7 +225,7 @@ export default function AdvertisePage() {
 
               {/* Lead Type */}
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-wider text-slate-300">
+                <label className="text-[10px] uppercase tracking-wider text-ink">
                   Inquiry Type *
                 </label>
                 <select
@@ -243,7 +243,7 @@ export default function AdvertisePage() {
 
               {/* Message */}
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-wider text-slate-300">
+                <label className="text-[10px] uppercase tracking-wider text-ink">
                   Briefly explain your branding goal *
                 </label>
                 <textarea

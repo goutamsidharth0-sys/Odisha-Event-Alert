@@ -108,6 +108,28 @@ model Event {
   updatedAt        DateTime     @updatedAt
   publishedAt      DateTime?
   images           EventImage[]
+  registrations    Registration[]
+}
+
+model Registration {
+  id                   String   @id @default(uuid())
+  code                 String   @unique // e.g. OEA-REG-2026-AB12
+  eventId              String
+  event                Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name                 String
+  mobile               String
+  email                String?
+  city                 String?
+  attendeeCount        Int      @default(1)
+  status               String   @default("REGISTERED") // REGISTERED, PENDING, CONFIRMED, WAITLISTED, CANCELLED
+  consentEventUpdates  Boolean  @default(true)
+  consentSimilarAlerts Boolean  @default(false)
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([createdAt])
 }
 
 model EventImage {

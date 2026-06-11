@@ -13,13 +13,13 @@ export default function AboutPage() {
         <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
           About Odisha Event Alert
         </h1>
-        <p className="text-xs sm:text-sm font-semibold text-slate-400 max-w-xl mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm font-semibold text-muted max-w-xl mx-auto leading-relaxed">
           We are building the ultimate local event discovery network, connecting event organizers and brands directly with active local communities.
         </p>
       </div>
 
       {/* Main Copy */}
-      <div className="glass-panel p-8 rounded-3xl border border-white/5 space-y-6 text-sm font-semibold text-slate-300 leading-relaxed">
+      <div className="glass-panel p-8 rounded-3xl border border-white/5 space-y-6 text-sm font-semibold text-ink leading-relaxed">
         <h3 className="text-white font-bold text-base flex items-center gap-1.5 border-b border-white/5 pb-2">
           <Calendar className="w-5 h-5 text-brand-accent" />
           <span>Odisha’s Dedicated Event Radar</span>
@@ -49,7 +49,7 @@ export default function AboutPage() {
                 <Icon className="w-5 h-5" />
               </div>
               <h4 className="text-xs font-bold text-white leading-tight">{item.t}</h4>
-              <p className="text-[11px] font-semibold text-slate-400 leading-normal">{item.desc}</p>
+              <p className="text-[11px] font-semibold text-muted leading-normal">{item.desc}</p>
             </div>
           );
         })}
@@ -60,25 +60,25 @@ export default function AboutPage() {
         <h3 className="text-white font-bold text-base border-b border-white/5 pb-2">
           Contact Our Team
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs font-semibold text-slate-300">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs font-semibold text-ink">
           <div className="flex items-center space-x-2.5">
             <Mail className="w-4 h-4 text-brand-accent shrink-0" />
             <div className="flex flex-col">
-              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Email Us</span>
+              <span className="text-[9px] uppercase font-bold text-muted tracking-wider">Email Us</span>
               <span>contact@odishaeventalert.com</span>
             </div>
           </div>
           <div className="flex items-center space-x-2.5">
             <Phone className="w-4 h-4 text-brand-accent shrink-0" />
             <div className="flex flex-col">
-              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">WhatsApp Support</span>
+              <span className="text-[9px] uppercase font-bold text-muted tracking-wider">WhatsApp Support</span>
               <span>+91 9090123456</span>
             </div>
           </div>
           <div className="flex items-center space-x-2.5">
             <MapPin className="w-4 h-4 text-brand-accent shrink-0" />
             <div className="flex flex-col">
-              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Office Location</span>
+              <span className="text-[9px] uppercase font-bold text-muted tracking-wider">Office Location</span>
               <span>Patia Infocity Square, Bhubaneswar</span>
             </div>
           </div>

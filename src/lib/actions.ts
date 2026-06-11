@@ -393,6 +393,125 @@ export async function toggleFeaturedAction(id: string, isFeatured: boolean) {
 }
 
 // -------------------------------------------------------------
+// Public: Register Interest on OEA (blueprint §9)
+// -------------------------------------------------------------
+
+function generateRegistrationCode(): string {
+  const year = new Date().getFullYear();
+  const rand = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+    .map((b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32])
+    .join("");
+  return `OEA-REG-${year}-${rand}`;
+}
+
+export async function registerInterestAction(prevState: any, formData: FormData) {
+  try {
+    const eventId = (formData.get("eventId") as string)?.trim();
+    const name = (formData.get("name") as string)?.trim();
+    const mobile = (formData.get("mobile") as string)?.trim();
+    const email = (formData.get("email") as string)?.trim() || null;
+    const city = (formData.get("city") as string)?.trim() || null;
+    const attendeeCount = Math.min(Math.max(parseInt(formData.get("attendeeCount") as string) || 1, 1), 10);
+    const consentEventUpdates = formData.get("consentEventUpdates") === "on";
+    const consentSimilarAlerts = formData.get("consentSimilarAlerts") === "on";
+    const notes = (formData.get("notes") as string)?.trim() || null;
+
+    if (!eventId) return { success: false, error: "Missing event reference. Please reload the page." };
+    if (!name || name.length < 2) return { success: false, error: "Please enter your name." };
+    if (!/^[6-9]\d{9}$/.test(mobile || "")) return { success: false, error: "Enter a valid 10-digit mobile number." };
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { success: false, error: "Enter a valid email address." };
+    if (!consentEventUpdates) return { success: false, error: "Please agree to receive updates for this event." };
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true, status: true },
+    });
+    if (!event || !["PUBLISHED", "WATCHLIST"].includes(event.status)) {
+      return { success: false, error: "Registrations are not open for this event." };
+    }
+
+    // Already registered with this mobile? Return the existing code.
+    const existing = await prisma.registration.findFirst({
+      where: { eventId, mobile },
+      select: { code: true },
+    });
+    if (existing) {
+      return {
+        success: true,
+        code: existing.code,
+        message: "You're already registered for this event. Here is your registration ID.",
+      };
+    }
+
+    let code = generateRegistrationCode();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await prisma.registration.create({
+          data: {
+            code,
+            eventId,
+            name,
+            mobile,
+            email,
+            city,
+            attendeeCount,
+            status: event.status === "WATCHLIST" ? "PENDING" : "REGISTERED",
+            consentEventUpdates,
+            consentSimilarAlerts,
+            notes,
+          },
+        });
+        break;
+      } catch (err: any) {
+        if (err?.code === "P2002" && attempt < 2) {
+          code = generateRegistrationCode();
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    return { success: true, code };
+  } catch (error: any) {
+    console.error("Register interest error:", error);
+    return { success: false, error: "Something went wrong while registering. Please try again." };
+  }
+}
+
+// -------------------------------------------------------------
+// Admin: Registrations
+// -------------------------------------------------------------
+
+export async function updateRegistrationStatusAction(id: string, status: string) {
+  const session = await verifyAdminSession();
+  if (!session) throw new Error("Unauthorized");
+
+  try {
+    await prisma.registration.update({
+      where: { id },
+      data: { status },
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Update registration status error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteRegistrationAction(id: string) {
+  const session = await verifyAdminSession();
+  if (!session) throw new Error("Unauthorized");
+
+  try {
+    await prisma.registration.delete({ where: { id } });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete registration error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// -------------------------------------------------------------
 // Admin: Auto-Scan Engine
 // -------------------------------------------------------------
 

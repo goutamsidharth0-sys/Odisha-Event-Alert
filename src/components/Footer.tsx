@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { subscribeAction } from "@/lib/actions";
-import { Calendar, Mail, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, Send, CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
+import KonarkWheel from "./scene/KonarkWheel";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -34,9 +35,10 @@ export default function Footer() {
 
   const categories = [
     { name: "Concerts", href: "/events?category=concerts" },
-    { name: "DJ Nights", href: "/events?category=dj-nights" },
-    { name: "Comedy Shows", href: "/events?category=comedy" },
-    { name: "Food Festivals", href: "/events?category=food-festivals" },
+    { name: "Open Mic Events", href: "/events?category=open-mic" },
+    { name: "Jamming Sessions", href: "/events?category=jamming" },
+    { name: "New Openings", href: "/events?category=new-openings" },
+    { name: "Offers & Promotions", href: "/events?category=offers" },
     { name: "Workshops", href: "/events?category=workshops" },
   ];
 
@@ -57,29 +59,36 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative z-10 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-white/10 pt-16 pb-12 mt-20">
+    <footer
+      className="relative z-10 border-t pt-16 pb-12 mt-20 backdrop-blur-md"
+      style={{ background: "var(--card)", borderColor: "var(--card-line)" }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          
+
           {/* Brand Info */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-accent to-brand-glow text-white shadow shadow-brand-accent/20">
-                <Calendar className="w-4 h-4" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            <Link href="/" className="flex items-center space-x-2.5">
+              <span className="w-8 h-8 block">
+                <KonarkWheel />
+              </span>
+              <span className="text-lg font-display font-bold tracking-tight text-ink">
                 Odisha Event Alert
               </span>
             </Link>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-semibold">
-              Odisha’s dedicated event radar for concerts, workshops, expos, college fests, comedy shows, cultural events, food festivals, sports activities, and everything happening around you.
+            <p className="text-xs text-muted leading-relaxed font-semibold">
+              Odisha&apos;s live event radar for concerts, workshops, expos, college fests, comedy shows, open mics, jamming sessions, new openings, offers and everything happening around you.
+            </p>
+            <p className="text-[11px] font-bold text-ink flex items-start gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-px" />
+              Every listing is reviewed before it appears on OEA.
             </p>
             <div className="flex space-x-3 pt-2">
               <a
                 href="https://instagram.com/odishaeventalert"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-brand-glow hover:border-brand-accent/40 bg-slate-100 dark:bg-slate-900/60 transition-colors"
+                className="w-8 h-8 rounded-full border border-card-line flex items-center justify-center text-muted hover:text-brand-accent hover:border-brand-accent/40 bg-chip transition-colors"
               >
                 <svg className="w-4 h-4 stroke-current fill-none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -91,7 +100,7 @@ export default function Footer() {
                 href="https://facebook.com/odishaeventalert"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-brand-glow hover:border-brand-accent/40 bg-slate-100 dark:bg-slate-900/60 transition-colors"
+                className="w-8 h-8 rounded-full border border-card-line flex items-center justify-center text-muted hover:text-brand-accent hover:border-brand-accent/40 bg-chip transition-colors"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.8c4.56-.93 8-4.96 8-9.8z"/>
@@ -99,7 +108,7 @@ export default function Footer() {
               </a>
               <a
                 href="mailto:contact@odishaeventalert.com"
-                className="w-8 h-8 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-brand-glow hover:border-brand-accent/40 bg-slate-100 dark:bg-slate-900/60 transition-colors"
+                className="w-8 h-8 rounded-full border border-card-line flex items-center justify-center text-muted hover:text-brand-accent hover:border-brand-accent/40 bg-chip transition-colors"
               >
                 <Mail className="w-4 h-4" />
               </a>
@@ -108,13 +117,13 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-4 border-l-2 border-brand-accent pl-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-ink mb-4 border-l-2 border-brand-accent pl-2">
               Quick Links
             </h3>
-            <ul className="space-y-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <ul className="space-y-2 text-xs font-semibold text-muted">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                  <Link href={link.href} className="hover:text-brand-accent transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -124,18 +133,18 @@ export default function Footer() {
 
           {/* Explore */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-4 border-l-2 border-brand-accent pl-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-ink mb-4 border-l-2 border-brand-accent pl-2">
               Explore Odisha
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">
+                <span className="block text-[10px] uppercase tracking-wider text-muted font-bold mb-2">
                   Categories
                 </span>
-                <ul className="space-y-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                <ul className="space-y-2 text-xs font-semibold text-muted">
                   {categories.map((link) => (
                     <li key={link.name}>
-                      <Link href={link.href} className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                      <Link href={link.href} className="hover:text-brand-accent transition-colors">
                         {link.name}
                       </Link>
                     </li>
@@ -143,13 +152,13 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <span className="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">
+                <span className="block text-[10px] uppercase tracking-wider text-muted font-bold mb-2">
                   Cities
                 </span>
-                <ul className="space-y-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                <ul className="space-y-2 text-xs font-semibold text-muted">
                   {cities.map((link) => (
                     <li key={link.name}>
-                      <Link href={link.href} className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                      <Link href={link.href} className="hover:text-brand-accent transition-colors">
                         {link.name}
                       </Link>
                     </li>
@@ -161,10 +170,10 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-4 border-l-2 border-brand-accent pl-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-ink mb-4 border-l-2 border-brand-accent pl-2">
               Stay Alerted
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-semibold mb-4">
+            <p className="text-xs text-muted leading-relaxed font-semibold mb-4">
               Subscribe to get immediate alerts for the coolest upcoming fests, concerts, and offers in your city!
             </p>
             <form onSubmit={handleSubscribe} className="relative flex items-center">
@@ -174,7 +183,7 @@ export default function Footer() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-full px-4 py-2.5 pr-12 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-accent/50 transition-colors font-semibold"
+                className="w-full bg-chip border border-card-line rounded-full px-4 py-2.5 pr-12 text-xs text-ink focus:outline-none focus:border-brand-accent/50 transition-colors font-semibold"
               />
               <button
                 type="submit"
@@ -206,16 +215,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-slate-200 dark:border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-semibold text-slate-500">
+        <div className="border-t border-card-line mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-semibold text-muted">
           <p>© {new Date().getFullYear()} Odisha Event Alert. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 sm:mt-0">
-            <Link href="/privacy" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+            <Link href="/privacy" className="hover:text-brand-accent transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+            <Link href="/terms" className="hover:text-brand-accent transition-colors">
               Terms
             </Link>
-            <Link href="/admin/login" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors border-l border-slate-200 dark:border-white/10 pl-4">
+            <Link href="/admin/login" className="hover:text-brand-accent transition-colors border-l border-card-line pl-4">
               Admin Login
             </Link>
           </div>

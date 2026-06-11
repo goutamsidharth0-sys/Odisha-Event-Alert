@@ -41,7 +41,7 @@ export default function SubmitEventPage() {
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
             Event Submitted Successfully!
           </h1>
-          <p className="text-sm text-slate-400 max-w-md mx-auto font-semibold leading-relaxed">
+          <p className="text-sm text-muted max-w-md mx-auto font-semibold leading-relaxed">
             Thank you for listing with Odisha Event Alert! Your submission has been sent to our admin review team. We will verify and publish your event within 4-12 hours.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function SubmitEventPage() {
             <Sparkles className="w-4 h-4 text-brand-glow" />
             <span>What happens next?</span>
           </h4>
-          <ol className="list-decimal pl-4 space-y-2 text-slate-400">
+          <ol className="list-decimal pl-4 space-y-2 text-muted">
             <li>Our administrative team reviews the event details & poster layout.</li>
             <li>We cross-reference registration URLs or ticket links for security.</li>
             <li>Once approved, your event immediately goes live on our public discovery pages.</li>
@@ -70,7 +70,7 @@ export default function SubmitEventPage() {
             href="https://wa.me/919090123456?text=I%20just%20submitted%20my%20event%20on%20the%20website.%20Could%20you%20please%20verify%20it?"
             target="_blank"
             rel="noreferrer"
-            className="px-6 py-2.5 rounded-full border border-white/10 text-slate-300 hover:text-brand-glow font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors"
+            className="px-6 py-2.5 rounded-full border border-white/10 text-ink hover:text-brand-glow font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors"
           >
             <MessageCircle className="w-4 h-4 shrink-0" />
             <span>WhatsApp Fast Track</span>
@@ -91,7 +91,7 @@ export default function SubmitEventPage() {
           <PlusCircle className="w-8 h-8 text-brand-accent shrink-0" />
           <span>Submit Your Event</span>
         </h1>
-        <p className="text-xs text-slate-400 font-semibold max-w-xl leading-relaxed">
+        <p className="text-xs text-muted font-semibold max-w-xl leading-relaxed">
           List your upcoming concerts, college fests, comedy shows, exhibitions, or offers completely free of charge. Grow your local reach across Odisha.
         </p>
       </div>
@@ -110,15 +110,15 @@ export default function SubmitEventPage() {
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3 flex items-center justify-between">
             <span>1. Event Information</span>
-            <span className="text-[10px] text-slate-500 font-bold lowercase tracking-normal">
+            <span className="text-[10px] text-muted font-bold lowercase tracking-normal">
               * required fields
             </span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-bold text-slate-400">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-bold text-muted">
             {/* Title */}
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Event Title *
               </label>
               <input
@@ -132,7 +132,7 @@ export default function SubmitEventPage() {
 
             {/* Category */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Category *
               </label>
               <select
@@ -158,7 +158,7 @@ export default function SubmitEventPage() {
 
             {/* Classification */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Classification *
               </label>
               <select
@@ -175,7 +175,7 @@ export default function SubmitEventPage() {
 
             {/* Event Type */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Event Type *
               </label>
               <select
@@ -191,7 +191,7 @@ export default function SubmitEventPage() {
 
             {/* Short Description */}
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Short Catchy Summary *
               </label>
               <input
@@ -205,7 +205,7 @@ export default function SubmitEventPage() {
 
             {/* Full description */}
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Full Event Details & Entry Rules *
               </label>
               <textarea
@@ -218,7 +218,7 @@ export default function SubmitEventPage() {
 
             {/* Start Date */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Start Date *
               </label>
               <input
@@ -231,7 +231,7 @@ export default function SubmitEventPage() {
 
             {/* End Date */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 End Date (Optional)
               </label>
               <input
@@ -243,7 +243,7 @@ export default function SubmitEventPage() {
 
             {/* Start Time */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Start Time *
               </label>
               <input
@@ -257,7 +257,7 @@ export default function SubmitEventPage() {
 
             {/* End Time */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 End Time (Optional)
               </label>
               <input
@@ -270,7 +270,7 @@ export default function SubmitEventPage() {
 
             {/* Venue Name */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Venue Name *
               </label>
               <input
@@ -284,7 +284,7 @@ export default function SubmitEventPage() {
 
             {/* Address */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Full Address
               </label>
               <input
@@ -297,7 +297,7 @@ export default function SubmitEventPage() {
 
             {/* City */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 City *
               </label>
               <select
@@ -318,7 +318,7 @@ export default function SubmitEventPage() {
 
             {/* Google Maps link */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Google Maps Link
               </label>
               <input
@@ -331,7 +331,7 @@ export default function SubmitEventPage() {
 
             {/* Price Type */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Entry Tickets *
               </label>
               <select
@@ -348,7 +348,7 @@ export default function SubmitEventPage() {
 
             {/* Ticket Price */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Ticket Price (INR)
               </label>
               <input
@@ -361,7 +361,7 @@ export default function SubmitEventPage() {
 
             {/* Registration/Booking URL */}
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Official Booking / Ticket Link
               </label>
               <input
@@ -374,7 +374,7 @@ export default function SubmitEventPage() {
 
             {/* Event Poster URL */}
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Poster Image Link (Optional)
               </label>
               <input
@@ -393,10 +393,10 @@ export default function SubmitEventPage() {
             2. Organizer Details
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-bold text-slate-400">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-bold text-muted">
             {/* Organizer Name */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Organizer / Agency Name *
               </label>
               <input
@@ -410,7 +410,7 @@ export default function SubmitEventPage() {
 
             {/* Contact Person */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Contact Person Name
               </label>
               <input
@@ -423,7 +423,7 @@ export default function SubmitEventPage() {
 
             {/* Phone */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Phone Number *
               </label>
               <input
@@ -437,7 +437,7 @@ export default function SubmitEventPage() {
 
             {/* Whatsapp */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 WhatsApp Number
               </label>
               <input
@@ -450,7 +450,7 @@ export default function SubmitEventPage() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Email Address
               </label>
               <input
@@ -463,7 +463,7 @@ export default function SubmitEventPage() {
 
             {/* Instagram Handle */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-300">
+              <label className="text-[10px] uppercase tracking-wider text-ink">
                 Instagram Link / Handle
               </label>
               <input
@@ -482,7 +482,7 @@ export default function SubmitEventPage() {
             3. Promotional Interest (Optional)
           </h2>
 
-          <div className="space-y-4 text-xs font-semibold text-slate-400">
+          <div className="space-y-4 text-xs font-semibold text-muted">
             <p className="text-[11px] leading-relaxed">
               Would you like to fast-track your event visibility? Select the options you are interested in, and our branding team will get in touch with specialized pricing packages:
             </p>
@@ -513,7 +513,7 @@ export default function SubmitEventPage() {
 
         {/* DECLARATION AND SUBMISSION CTA */}
         <div className="flex flex-col items-center space-y-4 pt-4 text-center">
-          <label className="flex items-start space-x-2.5 max-w-xl cursor-pointer text-xs font-semibold text-slate-400 select-none">
+          <label className="flex items-start space-x-2.5 max-w-xl cursor-pointer text-xs font-semibold text-muted select-none">
             <input
               type="checkbox"
               required
