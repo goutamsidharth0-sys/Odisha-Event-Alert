@@ -15,9 +15,6 @@ import {
   Ticket,
   Clock,
   IndianRupee,
-  Phone,
-  Mail,
-  Globe,
   Sparkles,
   Flag,
   ExternalLink,
@@ -58,7 +55,6 @@ export default async function EventDetailPage({ params }: Props) {
     include: {
       category: true,
       city: true,
-      organizer: true,
     },
   });
 
@@ -139,8 +135,8 @@ export default async function EventDetailPage({ params }: Props) {
     },
     organizer: {
       "@type": "Organization",
-      name: event.organizer?.name || "Odisha Event Alert",
-      url: event.organizer?.websiteUrl || SITE_URL,
+      name: "Odisha Event Alert",
+      url: SITE_URL,
     },
   };
 
@@ -153,7 +149,7 @@ export default async function EventDetailPage({ params }: Props) {
       ? "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=1600&auto=format&fit=crop"
       : "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop");
 
-  const reportMailto = `mailto:contact@odishaeventalert.com?subject=${encodeURIComponent(
+  const reportMailto = `mailto:goutamsidharth0@gmail.com?subject=${encodeURIComponent(
     `Report listing: ${event.slug}`
   )}&body=${encodeURIComponent(
     `I want to report incorrect details for the event "${event.title}" (${canonical}).\n\nWhat's wrong:\n`
@@ -276,46 +272,6 @@ export default async function EventDetailPage({ params }: Props) {
                             Official ticket source <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Organiser */}
-                {event.organizer && (
-                  <>
-                    <h2 className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-brand-accent mb-3">
-                      Organiser
-                    </h2>
-                    <div className="flex items-center gap-3.5 rounded-2xl border border-card-line bg-chip p-4 mb-6">
-                      <div className="w-11 h-11 rounded-xl glow-btn grid place-items-center font-display font-bold text-white shrink-0">
-                        {event.organizer.name.substring(0, 2).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <b className="font-display text-sm text-ink block truncate">{event.organizer.name}</b>
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs font-semibold text-muted">
-                          {event.organizer.status === "VERIFIED" && <span className="text-ok">Verified organiser</span>}
-                          {event.organizer.phone && (
-                            <span className="inline-flex items-center gap-1">
-                              <Phone className="w-3 h-3" /> {event.organizer.phone}
-                            </span>
-                          )}
-                          {event.organizer.email && (
-                            <span className="inline-flex items-center gap-1">
-                              <Mail className="w-3 h-3" /> {event.organizer.email}
-                            </span>
-                          )}
-                          {event.organizer.websiteUrl && (
-                            <a
-                              href={event.organizer.websiteUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-brand-accent hover:underline"
-                            >
-                              <Globe className="w-3 h-3" /> Website
-                            </a>
-                          )}
-                        </div>
                       </div>
                     </div>
                   </>

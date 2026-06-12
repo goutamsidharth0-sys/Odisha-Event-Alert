@@ -67,7 +67,7 @@ export default function SubmitEventPage() {
             Submit Another Event
           </button>
           <a
-            href="https://wa.me/919090123456?text=I%20just%20submitted%20my%20event%20on%20the%20website.%20Could%20you%20please%20verify%20it?"
+            href="https://wa.me/917008181478?text=I%20just%20submitted%20my%20event%20on%20the%20website.%20Could%20you%20please%20verify%20it?"
             target="_blank"
             rel="noreferrer"
             className="px-6 py-2.5 rounded-full border border-white/10 text-ink hover:text-brand-glow font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors"
@@ -430,7 +430,7 @@ export default function SubmitEventPage() {
                 type="tel"
                 name="phone"
                 required
-                placeholder="e.g. +91 9090123456"
+                placeholder="e.g. +91 7008181478"
                 className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
               />
             </div>

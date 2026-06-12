@@ -65,14 +65,14 @@ export default function AboutPage() {
             <Mail className="w-4 h-4 text-brand-accent shrink-0" />
             <div className="flex flex-col">
               <span className="text-[9px] uppercase font-bold text-muted tracking-wider">Email Us</span>
-              <span>contact@odishaeventalert.com</span>
+              <span>goutamsidharth0@gmail.com</span>
             </div>
           </div>
           <div className="flex items-center space-x-2.5">
             <Phone className="w-4 h-4 text-brand-accent shrink-0" />
             <div className="flex flex-col">
               <span className="text-[9px] uppercase font-bold text-muted tracking-wider">WhatsApp Support</span>
-              <span>+91 9090123456</span>
+              <span>+91 7008181478</span>
             </div>
           </div>
           <div className="flex items-center space-x-2.5">
