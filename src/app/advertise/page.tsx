@@ -72,7 +72,7 @@ export default function AdvertisePage() {
         </p>
         <div className="flex justify-center pt-2">
           <a
-            href="https://wa.me/919090123456?text=Hello!%20I%20want%20to%20inquire%20about%20sponsorship%20packages%20and%20homepage%20banner%20advertisements%20on%20Odisha%20Event%20Alert."
+            href="https://wa.me/917008181478?text=Hello!%20I%20want%20to%20inquire%20about%20sponsorship%20packages%20and%20homepage%20banner%20advertisements%20on%20Odisha%20Event%20Alert."
             target="_blank"
             rel="noreferrer"
             className="px-6 py-3 rounded-full glow-btn text-xs font-bold uppercase tracking-wider text-white flex items-center space-x-1.5 shadow"
@@ -191,7 +191,7 @@ export default function AdvertisePage() {
                     type="tel"
                     name="phone"
                     required
-                    placeholder="e.g. +91 9090123456"
+                    placeholder="e.g. +91 7008181478"
                     className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
                   />
                 </div>

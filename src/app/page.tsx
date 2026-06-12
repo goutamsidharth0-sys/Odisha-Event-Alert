@@ -465,7 +465,7 @@ export default async function HomePage({ searchParams }: Props) {
                   Submit Your Event
                 </Link>
                 <a
-                  href="https://wa.me/919090123456?text=Hello!%20I%20want%20to%20list%20my%20upcoming%20event%20on%20Odisha%20Event%20Alert."
+                  href="https://wa.me/917008181478?text=Hello!%20I%20want%20to%20list%20my%20upcoming%20event%20on%20Odisha%20Event%20Alert."
                   target="_blank"
                   rel="noreferrer"
                   className="px-6 py-3 rounded-full border border-card-line hover:border-brand-accent/40 text-muted hover:text-brand-accent text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all"
@@ -501,7 +501,7 @@ export default async function HomePage({ searchParams }: Props) {
                   Advertise With Us
                 </Link>
                 <a
-                  href="https://wa.me/919090123456?text=Hello!%20I%20want%20to%20inquire%20about%20sponsorship%20and%20banner%20advertisement%20packages%20on%20Odisha%20Event%20Alert."
+                  href="https://wa.me/917008181478?text=Hello!%20I%20want%20to%20inquire%20about%20sponsorship%20and%20banner%20advertisement%20packages%20on%20Odisha%20Event%20Alert."
                   target="_blank"
                   rel="noreferrer"
                   className="px-6 py-3 rounded-full border border-card-line hover:border-brand-accent/40 text-muted hover:text-brand-accent text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all"

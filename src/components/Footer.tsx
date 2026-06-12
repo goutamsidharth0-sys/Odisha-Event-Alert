@@ -107,7 +107,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="mailto:contact@odishaeventalert.com"
+                href="mailto:goutamsidharth0@gmail.com"
                 className="w-8 h-8 rounded-full border border-card-line flex items-center justify-center text-muted hover:text-brand-accent hover:border-brand-accent/40 bg-chip transition-colors"
               >
                 <Mail className="w-4 h-4" />
