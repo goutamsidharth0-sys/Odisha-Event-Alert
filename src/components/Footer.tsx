@@ -34,20 +34,20 @@ export default function Footer() {
   };
 
   const categories = [
-    { name: "Concerts", href: "/events?category=concerts" },
-    { name: "Open Mic Events", href: "/events?category=open-mic" },
-    { name: "Jamming Sessions", href: "/events?category=jamming" },
-    { name: "New Openings", href: "/events?category=new-openings" },
-    { name: "Offers & Promotions", href: "/events?category=offers" },
-    { name: "Workshops", href: "/events?category=workshops" },
+    { name: "Concerts", href: "/category/concerts" },
+    { name: "Open Mic Events", href: "/category/open-mic" },
+    { name: "Jamming Sessions", href: "/category/jamming" },
+    { name: "New Openings", href: "/category/new-openings" },
+    { name: "Offers & Promotions", href: "/category/offers" },
+    { name: "Workshops", href: "/category/workshops" },
   ];
 
   const cities = [
-    { name: "Bhubaneswar", href: "/events?city=bhubaneswar" },
-    { name: "Cuttack", href: "/events?city=cuttack" },
-    { name: "Puri", href: "/events?city=puri" },
-    { name: "Rourkela", href: "/events?city=rourkela" },
-    { name: "Sambalpur", href: "/events?city=sambalpur" },
+    { name: "Bhubaneswar", href: "/city/bhubaneswar" },
+    { name: "Cuttack", href: "/city/cuttack" },
+    { name: "Puri", href: "/city/puri" },
+    { name: "Rourkela", href: "/city/rourkela" },
+    { name: "Sambalpur", href: "/city/sambalpur" },
   ];
 
   const quickLinks = [

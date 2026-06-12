@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import SceneGate from "@/components/scene/SceneGate";
+import { SITE_URL } from "@/lib/seo";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,9 +23,10 @@ const spaceMono = Space_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://www.odishaeventalert.com";
-
 export const metadata: Metadata = {
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
   metadataBase: new URL(SITE_URL),
   title: "Odisha Event Alert — Odisha's Live Event Radar",
   description:

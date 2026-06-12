@@ -6,6 +6,7 @@ import HeroTypewriter from "@/components/HeroTypewriter";
 import RadarFeed, { RadarEvent } from "@/components/RadarFeed";
 import TiltCard from "@/components/TiltCard";
 import Rise from "@/components/Rise";
+import SectionHead from "@/components/SectionHead";
 import * as Icons from "lucide-react";
 import {
   Search,
@@ -70,41 +71,6 @@ function EventRow({ events }: { events: NonNullable<EventWithRels>[] }) {
           </TiltCard>
         </Rise>
       ))}
-    </div>
-  );
-}
-
-function SectionHead({
-  icon: Icon,
-  title,
-  sub,
-  href,
-  linkText,
-}: {
-  icon: React.ElementType;
-  title: string;
-  sub?: string;
-  href?: string;
-  linkText?: string;
-}) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-card-line pb-4 mb-6">
-      <div className="space-y-1">
-        <h2 className="text-lg font-display font-bold text-ink tracking-tight flex items-center gap-2">
-          <Icon className="w-5 h-5 text-brand-accent shrink-0" />
-          <span>{title}</span>
-        </h2>
-        {sub && <p className="text-[11px] font-semibold text-muted">{sub}</p>}
-      </div>
-      {href && (
-        <Link
-          href={href}
-          className="text-xs font-bold text-brand-accent hover:text-brand-glow flex items-center gap-1 shrink-0 group"
-        >
-          <span>{linkText || "View all"}</span>
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-        </Link>
-      )}
     </div>
   );
 }
@@ -325,7 +291,7 @@ export default async function HomePage({ searchParams }: Props) {
           {categories.slice(0, 18).map((cat, i) => (
             <Rise key={cat.id} delay={i * 30}>
               <Link
-                href={`/events?category=${cat.slug}${selectedCitySlug ? `&city=${selectedCitySlug}` : ""}`}
+                href={`/category/${cat.slug}`}
                 className="flex flex-col items-center justify-center p-5 rounded-2xl glass-panel glass-panel-hover text-center space-y-3 group h-full"
               >
                 <div className="w-12 h-12 rounded-xl bg-chip border border-card-line flex items-center justify-center text-muted group-hover:text-brand-accent group-hover:bg-brand-accent/10 group-hover:border-brand-accent/25 transition-all duration-300">
@@ -432,6 +398,22 @@ export default async function HomePage({ searchParams }: Props) {
               <span>✓ No payment handling</span>
               <span>✓ Free registration</span>
               <span>✓ Change alerts</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 pt-3 text-xs font-semibold text-muted">
+              <span className="text-ink font-bold">Browse:</span>
+              {quickCities
+                .filter((c) => c.slug)
+                .map((c) => (
+                  <Link key={c.slug} href={`/city/${c.slug}`} className="hover:text-brand-accent transition-colors">
+                    Events in {c.name}
+                  </Link>
+                ))}
+              <Link href="/category/open-mic" className="hover:text-brand-accent transition-colors">
+                Open Mic in Odisha
+              </Link>
+              <Link href="/category/jamming" className="hover:text-brand-accent transition-colors">
+                Jamming Sessions
+              </Link>
             </div>
           </div>
         </Rise>

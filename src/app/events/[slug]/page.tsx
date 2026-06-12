@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -9,6 +10,8 @@ import RegisterInterestPanel from "@/components/RegisterInterestPanel";
 import SaveShareButtons from "@/components/SaveShareButtons";
 import MobileRegisterBar from "@/components/MobileRegisterBar";
 import { OeaVerifiedBadge, WatchlistBadge, priceLabel } from "@/components/badges";
+import { SITE_URL, breadcrumbJsonLd } from "@/lib/seo";
+import { Crumbs } from "@/components/landing";
 import {
   Calendar,
   MapPin,
@@ -19,8 +22,6 @@ import {
   Flag,
   ExternalLink,
 } from "lucide-react";
-
-const SITE_URL = "https://www.odishaeventalert.com";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -131,6 +132,7 @@ export default async function EventDetailPage({ params }: Props) {
       price: event.minPrice || 0,
       priceCurrency: "INR",
       availability: "https://schema.org/InStock",
+      validFrom: (event.publishedAt || event.createdAt).toISOString(),
       url: event.ticketingUrl || event.registrationUrl || canonical,
     },
     organizer: {
@@ -157,22 +159,46 @@ export default async function EventDetailPage({ params }: Props) {
 
   return (
     <div className="pb-28 lg:pb-20">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            eventSchema,
+            breadcrumbJsonLd([
+              { name: "Home", url: SITE_URL },
+              { name: `Events in ${event.city.name}`, url: `${SITE_URL}/city/${event.city.slug}` },
+              { name: event.title, url: canonical },
+            ]),
+          ]),
+        }}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="mb-5">
+          <Crumbs
+            items={[
+              { name: "Home", href: "/" },
+              { name: `Events in ${event.city.name}`, href: `/city/${event.city.slug}` },
+              { name: event.title },
+            ]}
+          />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
           {/* LEFT: event content */}
           <Rise as="article">
             <div className="glass-panel rounded-3xl overflow-hidden">
               {/* Poster hero */}
               <div className="relative aspect-[16/8.5] overflow-hidden bg-brand-navy">
-                <img src={poster} alt={event.title} className="w-full h-full object-cover" />
+                <img src={poster} alt={event.title} fetchPriority="high" className="w-full h-full object-cover" />
                 <div className="absolute top-3.5 left-3.5 flex gap-2 flex-wrap pr-24">
                   {event.isVerified && <OeaVerifiedBadge className="backdrop-blur bg-emerald-950/60" />}
                   {isWatchlist && <WatchlistBadge className="backdrop-blur bg-amber-950/50" />}
-                  <span className="font-mono text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-950/70 backdrop-blur text-white">
+                  <Link
+                    href={`/category/${event.category.slug}`}
+                    className="font-mono text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-slate-950/70 backdrop-blur text-white hover:bg-brand-accent transition-colors"
+                  >
                     {event.category.name}
-                  </span>
+                  </Link>
                   <span
                     className={`font-mono text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md backdrop-blur text-white ${
                       isPaid ? "bg-brand-accent/90" : "bg-emerald-600/90"
@@ -212,7 +238,10 @@ export default async function EventDetailPage({ params }: Props) {
                       <b className="font-display text-sm text-ink block">{event.venueName}</b>
                       <span className="text-muted text-xs font-semibold">
                         {event.address ? `${event.address}, ` : ""}
-                        {event.city.name}, Odisha
+                        <Link href={`/city/${event.city.slug}`} className="text-brand-accent hover:underline">
+                          {event.city.name}
+                        </Link>
+                        , Odisha
                       </span>
                     </div>
                   </div>
