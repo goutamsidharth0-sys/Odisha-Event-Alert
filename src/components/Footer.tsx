@@ -215,7 +215,14 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-card-line mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-semibold text-muted">
+        <p className="border-t border-card-line mt-12 pt-8 text-[11px] font-semibold text-muted leading-relaxed">
+          Odisha Event Alert is a dedicated event discovery platform for Odisha — not a movie
+          ticketing platform. We do not list or sell movie tickets; we cover events, experiences,
+          activities, workshops, concerts, shows, fests, exhibitions and community happenings across
+          Odisha.
+        </p>
+
+        <div className="mt-6 pt-6 border-t border-card-line flex flex-col sm:flex-row items-center justify-between text-[11px] font-semibold text-muted">
           <p>© {new Date().getFullYear()} Odisha Event Alert. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 sm:mt-0">
             <Link href="/privacy" className="hover:text-brand-accent transition-colors">

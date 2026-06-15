@@ -7,6 +7,8 @@ import RadarFeed, { RadarEvent } from "@/components/RadarFeed";
 import TiltCard from "@/components/TiltCard";
 import Rise from "@/components/Rise";
 import SectionHead from "@/components/SectionHead";
+import { upcomingWhere } from "@/lib/eventFilters";
+import { POSITIONING_STATEMENT } from "@/lib/contentPolicy";
 import * as Icons from "lucide-react";
 import {
   Search,
@@ -107,7 +109,7 @@ export default async function HomePage({ searchParams }: Props) {
       orderBy: { sortOrder: "asc" },
     }),
     prisma.event.findMany({
-      where: { status: "PUBLISHED", isFeatured: true, ...cityFilter },
+      where: { status: "PUBLISHED", isFeatured: true, ...upcomingWhere(now), ...cityFilter },
       include: EVENT_INCLUDE,
       orderBy: { startDate: "asc" },
       take: 3,
@@ -147,6 +149,7 @@ export default async function HomePage({ searchParams }: Props) {
       where: {
         status: "PUBLISHED",
         category: { slug: { in: ["new-openings", "offers"] } },
+        ...upcomingWhere(now),
         ...cityFilter,
       },
       include: EVENT_INCLUDE,
@@ -154,7 +157,7 @@ export default async function HomePage({ searchParams }: Props) {
       take: 4,
     }),
     prisma.event.findMany({
-      where: { status: "WATCHLIST", ...cityFilter },
+      where: { status: "WATCHLIST", ...upcomingWhere(now), ...cityFilter },
       include: EVENT_INCLUDE,
       orderBy: { startDate: "asc" },
       take: 4,
@@ -392,6 +395,11 @@ export default async function HomePage({ searchParams }: Props) {
               OEA is a trusted event radar, not a ticketing site. You register interest on OEA and get
               confirmations, reminders and change alerts. Tickets for paid events are handled by the
               official organiser or source — OEA never collects payment.
+            </p>
+            <p className="max-w-2xl mx-auto text-xs text-muted font-bold leading-relaxed">
+              {POSITIONING_STATEMENT} We do not list or sell movie tickets — only real-world events,
+              experiences, workshops, concerts, shows, fests, exhibitions and community happenings
+              across Odisha.
             </p>
             <div className="flex flex-wrap justify-center gap-6 pt-2 font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
               <span>✓ Verified listings</span>
