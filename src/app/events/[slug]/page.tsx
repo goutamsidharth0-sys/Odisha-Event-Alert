@@ -143,6 +143,12 @@ export default async function EventDetailPage({ params }: Props) {
     },
   };
 
+  // Link the structured data to the official/original source for SEO trust.
+  const sameAs = [event.officialUrl, event.sourceUrl, event.instagramUrl].filter(
+    (u): u is string => Boolean(u)
+  );
+  if (sameAs.length) (eventSchema as Record<string, unknown>).sameAs = sameAs;
+
   const isWatchlist = event.status === "WATCHLIST";
   const isPaid = event.priceType === "PAID";
   const poster =
@@ -283,6 +289,60 @@ export default async function EventDetailPage({ params }: Props) {
                 <div className="text-sm font-medium text-muted leading-relaxed space-y-4 whitespace-pre-line mb-7">
                   {event.description}
                 </div>
+
+                {/* Official source & links — every listing (SEO + trust) */}
+                {(event.officialUrl || event.sourceUrl || event.instagramUrl || event.registrationUrl) && (
+                  <div className="mb-7">
+                    <h2 className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-brand-accent mb-3">
+                      Official source &amp; links
+                    </h2>
+                    <div className="flex flex-wrap gap-2.5 mb-2">
+                      {event.officialUrl && (
+                        <a
+                          href={event.officialUrl}
+                          target="_blank"
+                          rel="noreferrer nofollow"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-card-line bg-chip px-3.5 py-2 text-xs font-bold text-ink hover:border-brand-accent hover:text-brand-accent transition-colors"
+                        >
+                          Official page <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {event.sourceUrl && (
+                        <a
+                          href={event.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer nofollow"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-card-line bg-chip px-3.5 py-2 text-xs font-bold text-ink hover:border-brand-accent hover:text-brand-accent transition-colors"
+                        >
+                          Source: {event.sourceName || "original listing"} <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {event.registrationUrl && (
+                        <a
+                          href={event.registrationUrl}
+                          target="_blank"
+                          rel="noreferrer nofollow"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-card-line bg-chip px-3.5 py-2 text-xs font-bold text-ink hover:border-brand-accent hover:text-brand-accent transition-colors"
+                        >
+                          Registration <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      {event.instagramUrl && (
+                        <a
+                          href={event.instagramUrl}
+                          target="_blank"
+                          rel="noreferrer nofollow"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-card-line bg-chip px-3.5 py-2 text-xs font-bold text-ink hover:border-brand-accent hover:text-brand-accent transition-colors"
+                        >
+                          Instagram <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-[11px] font-semibold text-muted">
+                      Links open the official organiser or original source. Always confirm event details there before you go.
+                    </p>
+                  </div>
+                )}
 
                 {/* Paid ticket-source box (blueprint §8.3) */}
                 {isPaid && (

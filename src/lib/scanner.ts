@@ -173,6 +173,35 @@ async function expirePastEvents(): Promise<number> {
   return withEnd.count + withoutEnd.count;
 }
 
+// Self-healing content-policy guard. The import filter only blocks NEW movie
+// listings; rows imported before the filter (or that slip past it) stay live.
+// Each scan, re-check every live event against the movie/cinema policy and
+// expire any that match — so the catalogue self-corrects without manual SQL.
+async function archiveMovieEvents(): Promise<number> {
+  const live = await prisma.event.findMany({
+    where: { status: { in: ["PUBLISHED", "WATCHLIST"] } },
+    select: {
+      id: true,
+      title: true,
+      shortDescription: true,
+      description: true,
+      venueName: true,
+      address: true,
+    },
+  });
+  const movieIds = live
+    .filter((e) =>
+      isMovieContent(e.title, e.shortDescription, e.description, e.venueName, e.address)
+    )
+    .map((e) => e.id);
+  if (movieIds.length === 0) return 0;
+  const res = await prisma.event.updateMany({
+    where: { id: { in: movieIds } },
+    data: { status: "EXPIRED" },
+  });
+  return res.count;
+}
+
 interface SerpApiEvent {
   title?: string;
   description?: string;
@@ -285,6 +314,7 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
   const results: SourceResult[] = [];
 
   const expired = await expirePastEvents();
+  const moviesArchived = await archiveMovieEvents();
 
   const apiKey = process.env.SERPAPI_KEY;
   const queries = (process.env.SCAN_QUERIES || "")
@@ -336,7 +366,10 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
         created: r.created,
         updated: r.updated,
         expired,
-        message: r.message || null,
+        message:
+          moviesArchived > 0
+            ? `${r.message ? r.message + " · " : ""}${moviesArchived} movie listing(s) auto-archived`
+            : r.message || null,
         startedAt,
         finishedAt,
       },

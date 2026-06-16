@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Search, MapPin, Menu, X, PlusCircle } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import KonarkWheel from "./scene/KonarkWheel";
 
 const CITIES = [
   { name: "All Odisha", slug: "" },
@@ -54,15 +53,20 @@ export default function Header() {
         <div className="flex items-center gap-4 h-[68px]">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <span className="w-9 h-9 block animate-[wheel-spin_24s_linear_infinite] group-hover:scale-105 transition-transform">
-              <KonarkWheel />
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-icon.png"
+              alt="Odisha Event Alert logo"
+              width={48}
+              height={40}
+              className="h-9 w-auto group-hover:scale-105 transition-transform"
+            />
             <span className="flex flex-col">
               <span className="font-display font-bold text-lg leading-none tracking-tight text-ink">
-                OE<b className="text-brand-accent">A</b>
+                Odisha <b className="text-brand-accent">Event</b> Alert
               </span>
               <span className="text-[9px] text-muted font-mono tracking-[0.18em] uppercase mt-0.5 hidden sm:block">
-                Odisha Event Alert
+                Your Odisha Event Radar
               </span>
             </span>
           </Link>

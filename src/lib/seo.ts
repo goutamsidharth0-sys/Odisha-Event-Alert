@@ -26,3 +26,30 @@ export function faqJsonLd(faqs: { q: string; a: string }[]) {
     })),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Keyword-rich SEO landing paths.
+// These are the CANONICAL URLs. The /city/<slug> and /category/<slug> routes
+// stay live (no breakage) but point their canonical here, so Google
+// consolidates ranking signals onto the keyword URL.
+// To add another keyword landing page later, add a new route folder under
+// src/app and a mapping entry below — nothing else changes.
+// ---------------------------------------------------------------------------
+export const CITY_SEO_PATH: Record<string, string> = {
+  bhubaneswar: "/events-in-bhubaneswar",
+  cuttack: "/events-in-cuttack",
+  puri: "/events-in-puri",
+};
+
+export const CATEGORY_SEO_PATH: Record<string, string> = {
+  concerts: "/concerts-in-odisha",
+  "college-fests": "/college-fests-in-odisha",
+};
+
+export function cityPath(slug: string): string {
+  return CITY_SEO_PATH[slug] ?? `/city/${slug}`;
+}
+
+export function categoryPath(slug: string): string {
+  return CATEGORY_SEO_PATH[slug] ?? `/category/${slug}`;
+}
