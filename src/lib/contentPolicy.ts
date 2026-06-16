@@ -22,6 +22,38 @@ export const MOVIE_KEYWORDS = [
   "first day first show",
   "in cinemas",
   "now showing in theatres",
+  // Phrases common to auto-scraped Google "Movies" listings:
+  "movie show time",
+  "show time in",
+  "showtimes",
+  "book tickets for the movie",
+  "biopic",
+  "box office collection",
+  "(u/a)",
+  "u/a certificate",
+  "censor certificate",
+];
+
+// Cinema chains and known Odisha multiplex venues. Auto-scanned movie
+// listings almost always carry one of these as the venue, even when the
+// title (a film name) and blurb contain no obvious movie keyword. Matched
+// against the event venue/address. Keep these distinctive to avoid matching
+// ordinary event halls (do NOT add bare "mall"/"plaza").
+export const CINEMA_VENUE_KEYWORDS = [
+  "pvr",
+  "inox",
+  "cinepolis",
+  "cinépolis",
+  "movieex",
+  "miraj cinema",
+  "carnival cinema",
+  "mukta a2",
+  "city pride",
+  "movietime",
+  "cinema hall",
+  "cineplex",
+  "multiplex",
+  "uday plaza", // Bhubaneswar cinema seen in scans
 ];
 
 export function isMovieContent(...parts: (string | null | undefined)[]): boolean {
@@ -30,7 +62,10 @@ export function isMovieContent(...parts: (string | null | undefined)[]): boolean
     .join(" ")
     .toLowerCase();
   if (!haystack) return false;
-  return MOVIE_KEYWORDS.some((kw) => haystack.includes(kw));
+  return (
+    MOVIE_KEYWORDS.some((kw) => haystack.includes(kw)) ||
+    CINEMA_VENUE_KEYWORDS.some((kw) => haystack.includes(kw))
+  );
 }
 
 // User-facing rejection copy (mandated wording).

@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { subscribeAction } from "@/lib/actions";
 import { Mail, Send, CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
-import KonarkWheel from "./scene/KonarkWheel";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -69,9 +68,14 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center space-x-2.5">
-              <span className="w-8 h-8 block">
-                <KonarkWheel />
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-icon.png"
+                alt="Odisha Event Alert logo"
+                width={40}
+                height={33}
+                className="h-9 w-auto"
+              />
               <span className="text-lg font-display font-bold tracking-tight text-ink">
                 Odisha Event Alert
               </span>
