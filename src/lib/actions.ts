@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { isMovieContent, MOVIE_REJECTION_MESSAGE } from "@/lib/contentPolicy";
 
 const JWT_SECRET = process.env.JWT_SECRET || "odisha-event-alert-super-secret-key-2026";
 const SESSION_COOKIE_NAME = "admin_session";
@@ -124,6 +125,11 @@ export async function submitEventAction(formData: FormData) {
 
     if (!eventTitle || !description || !startDateStr || !venueName || !city || !organizerName || !phone) {
       return { success: false, error: "Please fill in all required fields marked with *." };
+    }
+
+    // Content policy: no movies / cinema ticketing listings.
+    if (isMovieContent(eventTitle, category, description)) {
+      return { success: false, error: MOVIE_REJECTION_MESSAGE };
     }
 
     await prisma.eventSubmission.create({
@@ -248,6 +254,10 @@ export async function createEventAction(data: any) {
   const session = await verifyAdminSession();
   if (!session) throw new Error("Unauthorized");
 
+  if (isMovieContent(data.title, data.shortDescription, data.description, data.sourceName)) {
+    return { success: false, error: MOVIE_REJECTION_MESSAGE };
+  }
+
   try {
     const event = await prisma.event.create({
       data: {
@@ -303,6 +313,10 @@ export async function createEventAction(data: any) {
 export async function updateEventAction(id: string, data: any) {
   const session = await verifyAdminSession();
   if (!session) throw new Error("Unauthorized");
+
+  if (isMovieContent(data.title, data.shortDescription, data.description, data.sourceName)) {
+    return { success: false, error: MOVIE_REJECTION_MESSAGE };
+  }
 
   try {
     const existing = await prisma.event.findUnique({ where: { id } });
@@ -543,6 +557,15 @@ export async function approveSubmissionAction(id: string, adminNotes?: string) {
   try {
     const sub = await prisma.eventSubmission.findUnique({ where: { id } });
     if (!sub) return { success: false, error: "Submission not found." };
+
+    // Content policy: never publish movie / cinema ticketing listings.
+    if (isMovieContent(sub.eventTitle, sub.category, sub.description)) {
+      await prisma.eventSubmission.update({
+        where: { id },
+        data: { status: "REJECTED", adminNotes: "Auto-rejected: movie/cinema content is not allowed on OEA." },
+      });
+      return { success: false, error: MOVIE_REJECTION_MESSAGE };
+    }
 
     // 1. Resolve or Create Category
     let category = await prisma.category.findFirst({

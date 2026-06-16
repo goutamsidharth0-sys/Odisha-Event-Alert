@@ -9,8 +9,9 @@ import Rise from "@/components/Rise";
 import RegisterInterestPanel from "@/components/RegisterInterestPanel";
 import SaveShareButtons from "@/components/SaveShareButtons";
 import MobileRegisterBar from "@/components/MobileRegisterBar";
-import { OeaVerifiedBadge, WatchlistBadge, priceLabel } from "@/components/badges";
+import { OeaVerifiedBadge, WatchlistBadge, priceLabel, SourceStatusBar } from "@/components/badges";
 import { SITE_URL, breadcrumbJsonLd } from "@/lib/seo";
+import { EVENT_TRUST_NOTE } from "@/lib/contentPolicy";
 import { Crumbs } from "@/components/landing";
 import {
   Calendar,
@@ -214,9 +215,18 @@ export default async function EventDetailPage({ params }: Props) {
 
               {/* Body */}
               <div className="p-6 sm:p-8">
-                <h1 className="font-display text-2xl sm:text-4xl font-bold text-ink tracking-tight leading-tight mb-6">
+                <h1 className="font-display text-2xl sm:text-4xl font-bold text-ink tracking-tight leading-tight mb-4">
                   {event.title}
                 </h1>
+
+                {/* Source & confirmation status — transparency at a glance */}
+                <SourceStatusBar
+                  sourceName={event.sourceName}
+                  organizerType={event.organizerType}
+                  status={event.status}
+                  isVerified={event.isVerified}
+                  className="mb-6"
+                />
 
                 {/* Meta grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
@@ -309,12 +319,14 @@ export default async function EventDetailPage({ params }: Props) {
                 {/* Disclaimer + report */}
                 <div className="bg-brand-accent/8 border border-brand-accent/20 p-5 rounded-2xl space-y-1.5 mb-4">
                   <h4 className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-brand-accent">
-                    Disclaimer
+                    Please verify before you go
                   </h4>
                   <p className="text-[11px] font-semibold text-muted leading-relaxed">
-                    Odisha Event Alert is an event discovery and registration platform — not a ticketing
-                    company. Schedules, line-ups, pricing and entry rules can change without notice; always
-                    verify final details with the organiser before attending.
+                    {EVENT_TRUST_NOTE}
+                  </p>
+                  <p className="text-[11px] font-semibold text-muted leading-relaxed">
+                    Odisha Event Alert is an event discovery and registration platform — not a movie
+                    ticketing company. OEA does not sell tickets.
                   </p>
                 </div>
 

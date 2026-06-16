@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { submitLeadAction } from "@/lib/actions";
-import { Sparkles, MessageCircle, BarChart3, Users, Send, CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
+import { MessageCircle, BarChart3, Users, Send, CheckCircle2, AlertCircle, Rocket } from "lucide-react";
 
 export default function AdvertisePage() {
   const [loading, setLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function AdvertisePage() {
     {
       title: "Featured Event Listing",
       description: "Get placed in the high-impact 'Featured Highlights' section right below the homepage hero. Includes glowing borders and priority grid positioning.",
-      metric: "5x more details clicks",
+      metric: "Priority placement",
     },
     {
       title: "Homepage Hero Banner",
@@ -61,14 +61,14 @@ export default function AdvertisePage() {
       <section className="relative text-center py-10 max-w-4xl mx-auto space-y-4">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-brand-accent/5 filter blur-[80px] -z-10 animate-pulse"></div>
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-glow">
-          Odisha Event Alert Branding
+          Early-Stage · Local-First · Founder-Led
         </span>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-ink tracking-tight leading-tight">
           Promote Your Event & Brand <br />
           Across <span className="bg-gradient-to-r from-brand-accent to-brand-glow bg-clip-text text-transparent glow-text">Odisha</span>
         </h1>
         <p className="text-xs sm:text-sm font-semibold text-muted max-w-xl mx-auto leading-relaxed">
-          Connect directly with young, active, and outgoing local demographics in Bhubaneswar, Cuttack, Puri, and other major cities. Generate high-intent bookings and brand inquiries.
+          We&apos;re a growing, Odisha-focused event discovery platform — early-stage and honest about it. Get affordable, local-first promotion with founder-led support for organisers and brands in Bhubaneswar, Cuttack, Puri and beyond.
         </p>
         <div className="flex justify-center pt-2">
           <a
@@ -83,34 +83,41 @@ export default function AdvertisePage() {
         </div>
       </section>
 
-      {/* METRICS & AUDIENCE */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { icon: Users, label: "Active Monthly Visitors", val: "50,000+" },
-          { icon: BarChart3, label: "Average Detail Page Views", val: "120,000+" },
-          { icon: ShieldCheck, label: "Sponsor Conversion Rate", val: "8.4%" },
-        ].map((met) => {
-          const Icon = met.icon;
-          return (
-            <div key={met.label} className="glass-panel p-6 rounded-3xl border border-white/5 flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/5 text-brand-glow flex items-center justify-center">
-                <Icon className="w-6 h-6" />
+      {/* METRICS & AUDIENCE — honest early-stage numbers */}
+      <section className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { icon: Users, label: "Monthly visitors & growing", val: "500+" },
+            { icon: BarChart3, label: "Event impressions & growing", val: "1,000+" },
+            { icon: Rocket, label: "Local-first promotion", val: "Founder-led" },
+          ].map((met) => {
+            const Icon = met.icon;
+            return (
+              <div key={met.label} className="glass-panel p-6 rounded-3xl border border-card-line flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-xl bg-chip border border-card-line text-brand-glow flex items-center justify-center">
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-black text-ink">{met.val}</span>
+                  <span className="text-[10px] uppercase font-bold text-muted tracking-wider">
+                    {met.label}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-black text-white">{met.val}</span>
-                <span className="text-[10px] uppercase font-bold text-muted tracking-wider">
-                  {met.label}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        <p className="text-[11px] font-semibold text-muted text-center max-w-2xl mx-auto leading-relaxed">
+          We&apos;re an early-stage Odisha event discovery startup, so these are honest, growing
+          numbers — not inflated reach claims. You get a focused local audience, affordable
+          launch-stage packages, and founder-led promotion support.
+        </p>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start pt-4">
         {/* ADVERTISING PACKAGES */}
         <div className="space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-ink border-l-4 border-brand-accent pl-3">
             Our Advertising Products
           </h2>
 
@@ -118,10 +125,10 @@ export default function AdvertisePage() {
             {adProducts.map((prod) => (
               <div
                 key={prod.title}
-                className="p-5 rounded-2xl border border-white/5 bg-slate-900/40 space-y-2 hover:border-brand-accent/20 transition-all shadow"
+                className="p-5 rounded-2xl border border-card-line bg-chip space-y-2 hover:border-brand-accent/20 transition-all shadow"
               >
                 <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-bold text-white">{prod.title}</h4>
+                  <h4 className="text-xs font-bold text-ink">{prod.title}</h4>
                   <span className="bg-brand-accent/10 border border-brand-accent/20 text-brand-glow text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full">
                     {prod.metric}
                   </span>
@@ -135,8 +142,8 @@ export default function AdvertisePage() {
         </div>
 
         {/* LEAD CAPTURE FORM */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-card-line space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-ink border-l-4 border-brand-accent pl-3">
             Request Media Kit & Quotes
           </h2>
 
@@ -146,14 +153,14 @@ export default function AdvertisePage() {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-white">Inquiry Received Successfully!</h3>
+                <h3 className="text-base font-bold text-ink">Inquiry Received Successfully!</h3>
                 <p className="text-xs text-muted max-w-sm mx-auto font-semibold leading-relaxed">
                   Thank you! Our advertising lead will analyze your query and email you our complete Media Kit and Pricing Packages within 2 hours.
                 </p>
               </div>
               <button
                 onClick={() => setSuccess(false)}
-                className="px-6 py-2 rounded-full bg-white text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors"
+                className="px-6 py-2 rounded-full bg-white text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-brand-accent/10 transition-colors"
               >
                 Submit Another Request
               </button>
@@ -177,7 +184,7 @@ export default function AdvertisePage() {
                   name="name"
                   required
                   placeholder="e.g. Satyabrata Das"
-                  className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                  className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
                 />
               </div>
 
@@ -192,7 +199,7 @@ export default function AdvertisePage() {
                     name="phone"
                     required
                     placeholder="e.g. +91 7008181478"
-                    className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                    className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
                   />
                 </div>
                 {/* Email */}
@@ -205,7 +212,7 @@ export default function AdvertisePage() {
                     name="email"
                     required
                     placeholder="e.g. support@organizer.com"
-                    className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                    className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
                   />
                 </div>
               </div>
@@ -219,7 +226,7 @@ export default function AdvertisePage() {
                   type="text"
                   name="companyName"
                   placeholder="e.g. Mayfair Hotels / KIIT SAC"
-                  className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                  className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
                 />
               </div>
 
@@ -231,7 +238,7 @@ export default function AdvertisePage() {
                 <select
                   name="leadType"
                   required
-                  className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                  className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
                 >
                   <option value="ADVERTISING">Homepage Banner Advertising</option>
                   <option value="SPONSORSHIP">Event Sponsorship Packages</option>
@@ -251,7 +258,7 @@ export default function AdvertisePage() {
                   required
                   rows={4}
                   placeholder="e.g., We have a stand-up comedy show in Bhubaneswar next month and want to run a 2-week Instagram collaboration campaign and get featured on your homepage..."
-                  className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                  className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
                 ></textarea>
               </div>
 

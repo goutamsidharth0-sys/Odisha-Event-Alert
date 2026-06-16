@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { submitEventAction } from "@/lib/actions";
-import { Calendar, PlusCircle, CheckCircle2, AlertCircle, Info, Sparkles, MessageCircle } from "lucide-react";
+import { PlusCircle, CheckCircle2, AlertCircle, Sparkles, MessageCircle } from "lucide-react";
 
 export default function SubmitEventPage() {
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function SubmitEventPage() {
           <CheckCircle2 className="w-8 h-8" />
         </div>
         <div className="space-y-3">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-ink tracking-tight">
             Event Submitted Successfully!
           </h1>
           <p className="text-sm text-muted max-w-md mx-auto font-semibold leading-relaxed">
@@ -46,8 +46,8 @@ export default function SubmitEventPage() {
           </p>
         </div>
 
-        <div className="p-6 rounded-3xl bg-slate-900 border border-white/5 space-y-4 max-w-md mx-auto text-left text-xs font-semibold">
-          <h4 className="text-white font-bold flex items-center space-x-1.5 border-b border-white/5 pb-2">
+        <div className="p-6 rounded-3xl bg-chip border border-card-line space-y-4 max-w-md mx-auto text-left text-xs font-semibold">
+          <h4 className="text-ink font-bold flex items-center space-x-1.5 border-b border-card-line pb-2">
             <Sparkles className="w-4 h-4 text-brand-glow" />
             <span>What happens next?</span>
           </h4>
@@ -62,7 +62,7 @@ export default function SubmitEventPage() {
         <div className="flex flex-wrap justify-center gap-3 pt-4">
           <button
             onClick={() => setSuccess(false)}
-            className="px-6 py-2.5 rounded-full bg-white text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors"
+            className="px-6 py-2.5 rounded-full bg-white text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-brand-accent/10 transition-colors"
           >
             Submit Another Event
           </button>
@@ -70,7 +70,7 @@ export default function SubmitEventPage() {
             href="https://wa.me/917008181478?text=I%20just%20submitted%20my%20event%20on%20the%20website.%20Could%20you%20please%20verify%20it?"
             target="_blank"
             rel="noreferrer"
-            className="px-6 py-2.5 rounded-full border border-white/10 text-ink hover:text-brand-glow font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors"
+            className="px-6 py-2.5 rounded-full border border-card-line text-ink hover:text-brand-glow font-bold text-xs uppercase tracking-wider flex items-center space-x-1.5 transition-colors"
           >
             <MessageCircle className="w-4 h-4 shrink-0" />
             <span>WhatsApp Fast Track</span>
@@ -87,7 +87,7 @@ export default function SubmitEventPage() {
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-glow">
           For Event Creators
         </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight flex items-center justify-center sm:justify-start gap-2">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight flex items-center justify-center sm:justify-start gap-2">
           <PlusCircle className="w-8 h-8 text-brand-accent shrink-0" />
           <span>Submit Your Event</span>
         </h1>
@@ -107,8 +107,8 @@ export default function SubmitEventPage() {
       <form onSubmit={handleSubmit} className="space-y-8">
         
         {/* SECTION 1: EVENT DETAILS */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3 flex items-center justify-between">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-card-line space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-ink border-l-4 border-brand-accent pl-3 flex items-center justify-between">
             <span>1. Event Information</span>
             <span className="text-[10px] text-muted font-bold lowercase tracking-normal">
               * required fields
@@ -126,7 +126,7 @@ export default function SubmitEventPage() {
                 name="eventTitle"
                 required
                 placeholder="e.g. DJ Night featuring DJ Lemon / Skill Bootcamp"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -138,11 +138,13 @@ export default function SubmitEventPage() {
               <select
                 name="category"
                 required
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               >
                 <option value="Concerts">Concerts</option>
                 <option value="DJ Nights">DJ Nights</option>
                 <option value="Comedy">Comedy</option>
+                <option value="Open Mic Events">Open Mic Events</option>
+                <option value="Jamming Sessions">Jamming Sessions</option>
                 <option value="Food Festivals">Food Festivals</option>
                 <option value="College Fests">College Fests</option>
                 <option value="Workshops">Workshops</option>
@@ -151,9 +153,14 @@ export default function SubmitEventPage() {
                 <option value="Sports">Sports</option>
                 <option value="Fitness & Yoga">Fitness & Yoga</option>
                 <option value="Exhibitions">Exhibitions</option>
-                <option value="Offers & Sales">Offers & Sales</option>
+                <option value="New Openings">New Openings</option>
+                <option value="Offers & Promotions">Offers & Promotions</option>
                 <option value="Community & Startup">Community & Startup</option>
               </select>
+              <p className="text-[10px] font-semibold text-muted normal-case tracking-normal leading-relaxed">
+                Real-world events only. Odisha Event Alert does not list movies, cinema shows or
+                movie tickets — those submissions are not accepted.
+              </p>
             </div>
 
             {/* Classification */}
@@ -164,7 +171,7 @@ export default function SubmitEventPage() {
               <select
                 name="organizerType"
                 required
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               >
                 <option value="PUBLIC">Public Festival / Expo / Open Event</option>
                 <option value="PRIVATE">Private Gig / Concert / DJ Night / Club Party</option>
@@ -181,7 +188,7 @@ export default function SubmitEventPage() {
               <select
                 name="eventType"
                 required
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               >
                 <option value="OFFLINE">Offline (In-Person)</option>
                 <option value="ONLINE">Online (Webinar / Stream)</option>
@@ -199,7 +206,7 @@ export default function SubmitEventPage() {
                 name="description"
                 required
                 placeholder="Give a 1-line catchy explanation of what makes this event unique."
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -212,7 +219,7 @@ export default function SubmitEventPage() {
                 name="description_full"
                 rows={5}
                 placeholder="Enter complete event description: who is performing/speaking, schedule, rules, guidelines, clothing policy, parking, age limits..."
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               ></textarea>
             </div>
 
@@ -225,7 +232,7 @@ export default function SubmitEventPage() {
                 type="date"
                 name="startDate"
                 required
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               />
             </div>
 
@@ -237,7 +244,7 @@ export default function SubmitEventPage() {
               <input
                 type="date"
                 name="endDate"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               />
             </div>
 
@@ -251,7 +258,7 @@ export default function SubmitEventPage() {
                 name="startTime"
                 required
                 placeholder="e.g. 06:00 PM / 18:00"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -264,7 +271,7 @@ export default function SubmitEventPage() {
                 type="text"
                 name="endTime"
                 placeholder="e.g. 10:00 PM"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -278,7 +285,7 @@ export default function SubmitEventPage() {
                 name="venueName"
                 required
                 placeholder="e.g. Janata Maidan / Utkal Mandap"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -291,7 +298,7 @@ export default function SubmitEventPage() {
                 type="text"
                 name="address"
                 placeholder="e.g. Jayadev Vihar, Chandrasekharpur"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -303,7 +310,7 @@ export default function SubmitEventPage() {
               <select
                 name="city"
                 required
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               >
                 <option value="Bhubaneswar">Bhubaneswar</option>
                 <option value="Cuttack">Cuttack</option>
@@ -325,7 +332,7 @@ export default function SubmitEventPage() {
                 type="url"
                 name="googleMapUrl"
                 placeholder="https://maps.google.com/?q=..."
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -337,7 +344,7 @@ export default function SubmitEventPage() {
               <select
                 name="priceType"
                 required
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50 text-xs font-semibold"
               >
                 <option value="FREE">Free Entry</option>
                 <option value="PAID">Paid Pass Required</option>
@@ -355,7 +362,7 @@ export default function SubmitEventPage() {
                 type="text"
                 name="ticketPrice"
                 placeholder="e.g. 499 / 999"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -368,7 +375,7 @@ export default function SubmitEventPage() {
                 type="url"
                 name="registrationUrl"
                 placeholder="https://bookmyshow.com/... or https://townscript.com/..."
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -381,15 +388,15 @@ export default function SubmitEventPage() {
                 type="url"
                 name="posterUrl"
                 placeholder="Paste an Unsplash or social media image link. A beautiful fallback will be used if left blank."
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
           </div>
         </div>
 
         {/* SECTION 2: ORGANIZER DETAILS */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-card-line space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-ink border-l-4 border-brand-accent pl-3">
             2. Organizer Details
           </h2>
 
@@ -404,7 +411,7 @@ export default function SubmitEventPage() {
                 name="organizerName"
                 required
                 placeholder="e.g. Standup comedy Cuttack"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -417,7 +424,7 @@ export default function SubmitEventPage() {
                 type="text"
                 name="contactPerson"
                 placeholder="e.g. Satyabrata Das"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -431,7 +438,7 @@ export default function SubmitEventPage() {
                 name="phone"
                 required
                 placeholder="e.g. +91 7008181478"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -444,7 +451,7 @@ export default function SubmitEventPage() {
                 type="tel"
                 name="whatsapp"
                 placeholder="For visitor support and ticket queries"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -457,7 +464,7 @@ export default function SubmitEventPage() {
                 type="email"
                 name="email"
                 placeholder="e.g. support@organizer.com"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
 
@@ -470,15 +477,15 @@ export default function SubmitEventPage() {
                 type="text"
                 name="instagramUrl"
                 placeholder="e.g. https://instagram.com/handle"
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-accent/50"
+                className="w-full bg-chip border border-card-line rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:border-brand-accent/50"
               />
             </div>
           </div>
         </div>
 
         {/* SECTION 3: PROMOTION INTEREST */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200 border-l-4 border-brand-accent pl-3">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-card-line space-y-6">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-ink border-l-4 border-brand-accent pl-3">
             3. Promotional Interest (Optional)
           </h2>
 
@@ -496,7 +503,7 @@ export default function SubmitEventPage() {
               ].map((promo) => (
                 <label
                   key={promo.name}
-                  className="flex items-start space-x-2.5 p-3 rounded-2xl border border-white/5 hover:border-brand-accent/30 bg-slate-900/40 hover:bg-slate-900/80 transition-colors cursor-pointer"
+                  className="flex items-start space-x-2.5 p-3 rounded-2xl border border-card-line hover:border-brand-accent/30 bg-chip hover:bg-chip/80 transition-colors cursor-pointer"
                 >
                   <input
                     type="checkbox"

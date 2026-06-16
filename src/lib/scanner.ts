@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { isMovieContent } from "@/lib/contentPolicy";
 
 // ---------------------------------------------------------------------------
 // OEA Auto-Scan Engine
@@ -212,6 +213,8 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
 
     const title = event.title.trim();
     const description = (event.description || event.date?.when || title).trim();
+    // Content policy: never import movie / cinema ticketing listings.
+    if (isMovieContent(title, description, event.venue?.name)) continue;
     const venueName = event.venue?.name || event.address?.[0] || "Venue to be announced";
     const startDate = parseSerpDate(event.date?.start_date || event.date?.when);
     if (!startDate) continue; // skip events we cannot date reliably
