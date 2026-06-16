@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
-import { SITE_URL } from "@/lib/seo";
+import { SITE_URL, cityPath, categoryPath } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -40,12 +40,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
     landingRoutes = [
       ...cities.map((c) => ({
-        url: `${SITE_URL}/city/${c.slug}`,
+        url: `${SITE_URL}${cityPath(c.slug)}`,
         changeFrequency: "daily" as const,
         priority: 0.9,
       })),
       ...categories.map((c) => ({
-        url: `${SITE_URL}/category/${c.slug}`,
+        url: `${SITE_URL}${categoryPath(c.slug)}`,
         changeFrequency: "daily" as const,
         priority: 0.9,
       })),

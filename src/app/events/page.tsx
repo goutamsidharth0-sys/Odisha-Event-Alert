@@ -3,6 +3,21 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import EventCard from "@/components/EventCard";
 import { Search, MapPin, Calendar, Ticket, SlidersHorizontal, ArrowUpDown, RefreshCw } from "lucide-react";
+import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: `Upcoming Events in Odisha ${new Date().getFullYear()} | Odisha Event Alert`,
+  description:
+    "Browse all upcoming verified events across Odisha — concerts, college fests, comedy, food festivals, workshops, exhibitions and more in Bhubaneswar, Cuttack, Puri and beyond. Updated daily, free interest registration on Odisha Event Alert.",
+  alternates: { canonical: `${SITE_URL}/events` },
+  openGraph: {
+    title: `Upcoming Events in Odisha ${new Date().getFullYear()} | Odisha Event Alert`,
+    description:
+      "All upcoming verified events across Odisha — updated daily on Odisha Event Alert.",
+    url: `${SITE_URL}/events`,
+  },
+};
 
 interface SearchParams {
   search?: string;
