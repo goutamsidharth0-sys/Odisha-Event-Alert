@@ -8,6 +8,7 @@ import TiltCard from "@/components/TiltCard";
 import Rise from "@/components/Rise";
 import RegisterInterestPanel from "@/components/RegisterInterestPanel";
 import SaveShareButtons from "@/components/SaveShareButtons";
+import EventShareBar from "@/components/EventShareBar";
 import MobileRegisterBar from "@/components/MobileRegisterBar";
 import { OeaVerifiedBadge, WatchlistBadge, priceLabel, SourceStatusBar } from "@/components/badges";
 import { SITE_URL, breadcrumbJsonLd } from "@/lib/seo";
@@ -284,6 +285,11 @@ export default async function EventDetailPage({ params }: Props) {
                     </div>
                   </div>
                 </div>
+
+                {/* Quick share */}
+                <EventShareBar title={event.title} posterUrl={poster} />
+
+                <div className="my-7 border-t border-card-line" />
 
                 {/* About */}
                 <h2 className="font-mono text-[11px] font-bold tracking-[0.2em] uppercase text-brand-accent mb-3">
