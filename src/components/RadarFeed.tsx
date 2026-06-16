@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import { OeaVerifiedBadge, WatchlistBadge, priceLabel } from "./badges";
+import { OeaVerifiedBadge, WatchlistBadge, priceLabel, SourceStatusBar } from "./badges";
 import TiltCard from "./TiltCard";
 
 export interface RadarEvent {
@@ -20,6 +20,9 @@ export interface RadarEvent {
   isVerified: boolean;
   isFeatured: boolean;
   status: string;
+  sourceName: string | null;
+  organizerType?: string;
+  updatedAt: string;
 }
 
 interface Props {
@@ -136,12 +139,21 @@ export default function RadarFeed({ events }: Props) {
                   <h3 className="font-display font-semibold text-base leading-snug text-ink line-clamp-2 mb-1.5">
                     {e.title}
                   </h3>
-                  <div className="flex items-center gap-1.5 text-muted text-xs font-semibold mb-4 truncate">
+                  <div className="flex items-center gap-1.5 text-muted text-xs font-semibold mb-3 truncate">
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">
                       {e.venueName}, {e.cityName}
                     </span>
                   </div>
+                  <SourceStatusBar
+                    sourceName={e.sourceName}
+                    organizerType={e.organizerType}
+                    status={e.status}
+                    isVerified={e.isVerified}
+                    lastVerified={e.updatedAt}
+                    compact
+                    className="mb-4"
+                  />
                   <div className="flex items-center justify-between">
                     <span
                       className={`font-display font-semibold text-sm ${

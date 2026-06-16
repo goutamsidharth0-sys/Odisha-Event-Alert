@@ -60,6 +60,8 @@ function toCardProps(event: NonNullable<EventWithRels>): EventCardProps {
     isVerified: event.isVerified,
     status: event.status,
     organizerType: event.organizerType,
+    sourceName: event.sourceName,
+    updatedAt: event.updatedAt,
   };
 }
 
@@ -178,6 +180,9 @@ export default async function HomePage({ searchParams }: Props) {
     isVerified: e.isVerified,
     isFeatured: e.isFeatured,
     status: e.status,
+    sourceName: e.sourceName,
+    organizerType: e.organizerType,
+    updatedAt: e.updatedAt.toISOString(),
   }));
 
   const quickCities = [

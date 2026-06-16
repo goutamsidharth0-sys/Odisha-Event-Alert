@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { submitLeadAction } from "@/lib/actions";
-import { MessageCircle, BarChart3, Users, Send, CheckCircle2, AlertCircle, Rocket } from "lucide-react";
+import { MessageCircle, Send, CheckCircle2, AlertCircle, Rocket, Star, Sparkles, Megaphone } from "lucide-react";
 
 export default function AdvertisePage() {
   const [loading, setLoading] = useState(false);
@@ -83,34 +83,31 @@ export default function AdvertisePage() {
         </div>
       </section>
 
-      {/* METRICS & AUDIENCE — honest early-stage numbers */}
+      {/* EARLY-STAGE OFFERS — package framing, no inflated traffic numbers */}
       <section className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { icon: Users, label: "Monthly visitors & growing", val: "500+" },
-            { icon: BarChart3, label: "Event impressions & growing", val: "1,000+" },
-            { icon: Rocket, label: "Local-first promotion", val: "Founder-led" },
-          ].map((met) => {
-            const Icon = met.icon;
+            { icon: Rocket, label: "Launch Partner Packages", desc: "Be one of our first promoted organisers as we grow across Odisha." },
+            { icon: Star, label: "Founding Organiser Pricing", desc: "Special early pricing locked in for our founding partners." },
+            { icon: Sparkles, label: "Early Access Promotion", desc: "Priority placement while we onboard our first cohort of events." },
+            { icon: Megaphone, label: "Website + Instagram Visibility", desc: "Featured on the site and across our local Instagram presence." },
+          ].map((item) => {
+            const Icon = item.icon;
             return (
-              <div key={met.label} className="glass-panel p-6 rounded-3xl border border-card-line flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-chip border border-card-line text-brand-glow flex items-center justify-center">
-                  <Icon className="w-6 h-6" />
+              <div key={item.label} className="glass-panel p-5 rounded-3xl border border-card-line space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-chip border border-card-line text-brand-glow flex items-center justify-center">
+                  <Icon className="w-5 h-5" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-2xl font-black text-ink">{met.val}</span>
-                  <span className="text-[10px] uppercase font-bold text-muted tracking-wider">
-                    {met.label}
-                  </span>
-                </div>
+                <h3 className="text-sm font-display font-bold text-ink leading-tight">{item.label}</h3>
+                <p className="text-[11px] font-semibold text-muted leading-relaxed">{item.desc}</p>
               </div>
             );
           })}
         </div>
         <p className="text-[11px] font-semibold text-muted text-center max-w-2xl mx-auto leading-relaxed">
-          We&apos;re an early-stage Odisha event discovery startup, so these are honest, growing
-          numbers — not inflated reach claims. You get a focused local audience, affordable
-          launch-stage packages, and founder-led promotion support.
+          We&apos;re an early-stage, founder-led Odisha event discovery startup. We don&apos;t publish
+          inflated visitor, page-view or conversion numbers — just honest, local-first promotion and
+          affordable launch-stage packages. Reach metrics will be shared once verified by analytics.
         </p>
       </section>
 

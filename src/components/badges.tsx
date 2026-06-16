@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, Radar, Star, Megaphone, BadgeCheck } from "lucide-react";
+import { CheckCircle2, Radar, Star, Megaphone, BadgeCheck, CalendarCheck } from "lucide-react";
 
 // Single source of truth for the blueprint's status labels and price chips.
 
@@ -77,21 +77,33 @@ export function confirmationLabel(status: string, isVerified?: boolean): string 
   return "Awaiting Organiser Confirmation";
 }
 
+export function formatVerified(date?: Date | string | null): string {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 export function SourceStatusBar({
   sourceName,
   organizerType,
   status,
   isVerified,
+  lastVerified,
+  compact,
   className,
 }: {
   sourceName?: string | null;
   organizerType?: string;
   status: string;
   isVerified?: boolean;
+  lastVerified?: Date | string | null;
+  compact?: boolean;
   className?: string;
 }) {
   const source = sourceLabel(sourceName, organizerType);
   const confirmation = confirmationLabel(status, isVerified);
+  const verified = formatVerified(lastVerified);
 
   const confirmStyle =
     confirmation === "Confirmed"
@@ -102,20 +114,29 @@ export function SourceStatusBar({
           ? "text-muted bg-chip border-card-line"
           : "text-cyan-600 dark:text-cyan-300 bg-cyan-500/12 border-cyan-500/25";
 
+  const pad = compact ? "px-2 py-0.5" : "px-2.5 py-1";
+  const txt = compact ? "text-[10px]" : "text-[11px]";
+  const lbl = compact ? "hidden" : "font-mono uppercase tracking-wide text-[9px]";
+
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className || ""}`}>
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-card-line bg-chip text-ink">
+    <div className={`flex flex-wrap items-center gap-1.5 ${className || ""}`}>
+      <span className={`inline-flex items-center gap-1.5 ${pad} rounded-lg ${txt} font-bold border border-card-line bg-chip text-ink`}>
         <Megaphone className="w-3 h-3 text-brand-accent shrink-0" />
-        <span className="font-mono uppercase tracking-wide text-[9px] text-muted">Source</span>
+        <span className={`${lbl} text-muted`}>Source</span>
         {source}
       </span>
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border ${confirmStyle}`}
-      >
+      <span className={`inline-flex items-center gap-1.5 ${pad} rounded-lg ${txt} font-bold border ${confirmStyle}`}>
         <BadgeCheck className="w-3 h-3 shrink-0" />
-        <span className="font-mono uppercase tracking-wide text-[9px] opacity-70">Status</span>
+        <span className={`${lbl} opacity-70`}>Status</span>
         {confirmation}
       </span>
+      {verified && (
+        <span className={`inline-flex items-center gap-1.5 ${pad} rounded-lg ${txt} font-bold border border-card-line bg-chip text-muted`}>
+          <CalendarCheck className="w-3 h-3 text-brand-accent shrink-0" />
+          <span className={`${lbl}`}>Last Verified</span>
+          {verified}
+        </span>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { MapPin, Ticket } from "lucide-react";
-import { OeaVerifiedBadge, WatchlistBadge, FeaturedBadge, priceLabel } from "./badges";
+import { OeaVerifiedBadge, WatchlistBadge, FeaturedBadge, priceLabel, SourceStatusBar } from "./badges";
 
 export interface EventCardProps {
   id: string;
@@ -21,6 +21,8 @@ export interface EventCardProps {
   isVerified?: boolean;
   status?: string;
   organizerType?: string;
+  sourceName?: string | null;
+  updatedAt?: Date | string | null;
 }
 
 export default function EventCard({
@@ -37,6 +39,9 @@ export default function EventCard({
   isFeatured,
   isVerified,
   status,
+  organizerType,
+  sourceName,
+  updatedAt,
 }: EventCardProps) {
   const dateObj = new Date(startDate);
   const day = dateObj.getDate();
@@ -122,6 +127,17 @@ export default function EventCard({
               {shortDescription}
             </p>
           )}
+
+          {/* Transparency: source · status · last verified */}
+          <SourceStatusBar
+            sourceName={sourceName}
+            organizerType={organizerType}
+            status={status || "PUBLISHED"}
+            isVerified={isVerified}
+            lastVerified={updatedAt}
+            compact
+            className="pt-1"
+          />
         </div>
 
         {/* Price & CTA Row */}
