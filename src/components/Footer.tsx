@@ -89,7 +89,7 @@ export default function Footer() {
             </p>
             <div className="flex space-x-3 pt-2">
               <a
-                href="https://instagram.com/odishaeventalert"
+                href="https://www.instagram.com/odisha_event_alert"
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full border border-card-line flex items-center justify-center text-muted hover:text-brand-accent hover:border-brand-accent/40 bg-chip transition-colors"
