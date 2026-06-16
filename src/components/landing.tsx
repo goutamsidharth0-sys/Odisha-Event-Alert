@@ -25,6 +25,8 @@ export interface EventForCard {
   isVerified: boolean;
   status: string;
   organizerType: string;
+  sourceName?: string | null;
+  updatedAt?: Date | string | null;
 }
 
 export function eventToCardProps(event: EventForCard): EventCardProps {
@@ -46,6 +48,8 @@ export function eventToCardProps(event: EventForCard): EventCardProps {
     isVerified: event.isVerified,
     status: event.status,
     organizerType: event.organizerType,
+    sourceName: event.sourceName,
+    updatedAt: event.updatedAt,
   };
 }
 

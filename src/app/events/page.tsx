@@ -438,6 +438,8 @@ export default async function EventsPage({
                   isVerified={event.isVerified}
                   status={event.status}
                   organizerType={event.organizerType}
+                  sourceName={event.sourceName}
+                  updatedAt={event.updatedAt}
                 />
               ))}
             </div>

@@ -28,18 +28,19 @@ export const metadata: Metadata = {
     ? { google: process.env.GOOGLE_SITE_VERIFICATION }
     : undefined,
   metadataBase: new URL(SITE_URL),
-  title: "Odisha Event Alert — Odisha's Live Event Radar",
+  title: "Odisha Event Alert | Events, Concerts, Fests & Workshops in Odisha",
   description:
-    "Discover verified events, workshops, expos, openings, offers, concerts, classes and community activities across Odisha (Bhubaneswar, Cuttack, Puri, Rourkela).",
+    "Discover verified events in Odisha including concerts, college fests, workshops, expos, comedy shows, DJ nights, cultural events, offers and new openings across Bhubaneswar, Cuttack, Puri, Rourkela, Sambalpur and Berhampur.",
+  applicationName: "Odisha Event Alert",
   keywords:
-    "Odisha Events, Bhubaneswar Events, Concerts in Cuttack, Open Mic Bhubaneswar, Jamming Sessions Odisha, New Openings Bhubaneswar, College Fests, Comedy Shows Cuttack",
+    "Odisha Events, Events in Bhubaneswar, Events in Cuttack, Concerts in Odisha, College Fests Odisha, Workshops Bhubaneswar, Comedy Shows Cuttack, DJ Nights Odisha, Cultural Events Odisha, New Openings Bhubaneswar, Offers in Odisha, Puri Events, Rourkela Events, Sambalpur Events, Berhampur Events",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Odisha Event Alert — Odisha's Live Event Radar",
+    title: "Odisha Event Alert | Events, Concerts, Fests & Workshops in Odisha",
     description:
-      "Discover verified events, workshops, openings, offers, concerts and community activities near you — reviewed before they go live.",
+      "Discover verified events in Odisha — concerts, college fests, workshops, expos, comedy shows, DJ nights, cultural events, offers and new openings across Bhubaneswar, Cuttack, Puri, Rourkela, Sambalpur and Berhampur.",
     url: SITE_URL,
     siteName: "Odisha Event Alert",
     images: [
@@ -47,10 +48,20 @@ export const metadata: Metadata = {
         url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop",
         width: 1200,
         height: 630,
+        alt: "Odisha Event Alert — events across Odisha",
       },
     ],
     locale: "en_IN",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Odisha Event Alert | Events, Concerts, Fests & Workshops in Odisha",
+    description:
+      "Discover verified events in Odisha — concerts, fests, workshops, comedy, DJ nights, cultural events, offers and new openings across Bhubaneswar, Cuttack, Puri, Rourkela, Sambalpur and Berhampur.",
+    images: [
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop",
+    ],
   },
 };
 

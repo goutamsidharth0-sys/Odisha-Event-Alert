@@ -57,6 +57,7 @@ export default async function EventDetailPage({ params }: Props) {
     include: {
       category: true,
       city: true,
+      organizer: { select: { name: true } },
     },
   });
 
@@ -123,8 +124,9 @@ export default async function EventDetailPage({ params }: Props) {
       name: event.venueName,
       address: {
         "@type": "PostalAddress",
+        ...(event.address ? { streetAddress: event.address } : {}),
         addressLocality: event.city.name,
-        addressRegion: "Odisha",
+        addressRegion: event.district || "Odisha",
         addressCountry: "IN",
       },
     },
@@ -138,8 +140,8 @@ export default async function EventDetailPage({ params }: Props) {
     },
     organizer: {
       "@type": "Organization",
-      name: "Odisha Event Alert",
-      url: SITE_URL,
+      name: event.organizer?.name || "Odisha Event Alert",
+      url: event.officialUrl || SITE_URL,
     },
   };
 
@@ -231,6 +233,7 @@ export default async function EventDetailPage({ params }: Props) {
                   organizerType={event.organizerType}
                   status={event.status}
                   isVerified={event.isVerified}
+                  lastVerified={event.updatedAt}
                   className="mb-6"
                 />
 
@@ -443,6 +446,8 @@ export default async function EventDetailPage({ params }: Props) {
                       isVerified={rel.isVerified}
                       status={rel.status}
                       organizerType={rel.organizerType}
+                      sourceName={rel.sourceName}
+                      updatedAt={rel.updatedAt}
                     />
                   </TiltCard>
                 </Rise>

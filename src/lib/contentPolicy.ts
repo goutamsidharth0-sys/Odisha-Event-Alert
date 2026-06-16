@@ -68,6 +68,57 @@ export function isMovieContent(...parts: (string | null | undefined)[]): boolean
   );
 }
 
+// Non-public / administrative listings that are NOT real public events:
+// tenders, notices, recruitment, government documents, results, etc. These
+// sometimes appear in scraped "events" feeds but must never surface publicly.
+export const NON_PUBLIC_KEYWORDS = [
+  "tender",
+  "e-tender",
+  "e-procurement",
+  "notice inviting",
+  "nit no",
+  "request for proposal",
+  "request for quotation",
+  " rfp ",
+  " rfq ",
+  "expression of interest",
+  " eoi ",
+  "corrigendum",
+  "addendum to tender",
+  "gazette notification",
+  "office order",
+  "office memorandum",
+  "circular no",
+  "recruitment",
+  "vacancy",
+  "walk-in interview",
+  "walk in interview",
+  "admit card",
+  "answer key",
+  "merit list",
+  "exam result",
+  "result declared",
+  "counselling schedule",
+  "auction notice",
+  "public notice",
+  "tender notice",
+];
+
+export function isNonPublicListing(...parts: (string | null | undefined)[]): boolean {
+  // Pad with spaces so " rfp "/" eoi " word-boundary-ish checks work at edges.
+  const haystack = ` ${parts.filter(Boolean).join(" ").toLowerCase()} `;
+  if (haystack.trim().length === 0) return false;
+  return NON_PUBLIC_KEYWORDS.some((kw) => haystack.includes(kw));
+}
+
+// Single guard used by submissions, admin publishing and the importer.
+export function isDisallowedEvent(...parts: (string | null | undefined)[]): boolean {
+  return isMovieContent(...parts) || isNonPublicListing(...parts);
+}
+
+export const NON_PUBLIC_REJECTION_MESSAGE =
+  "This looks like a tender, notice, recruitment or government document rather than a public event. Odisha Event Alert only lists real, public events open to attendees.";
+
 // User-facing rejection copy (mandated wording).
 export const MOVIE_REJECTION_MESSAGE =
   "Odisha Event Alert does not list or sell movie tickets. We only cover events, experiences, activities, workshops, concerts, shows, fests, exhibitions, and community happenings across Odisha.";

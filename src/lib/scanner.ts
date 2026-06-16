@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { isMovieContent } from "@/lib/contentPolicy";
+import { isMovieContent, isNonPublicListing, isDisallowedEvent } from "@/lib/contentPolicy";
 
 // ---------------------------------------------------------------------------
 // OEA Auto-Scan Engine
@@ -173,11 +173,12 @@ async function expirePastEvents(): Promise<number> {
   return withEnd.count + withoutEnd.count;
 }
 
-// Self-healing content-policy guard. The import filter only blocks NEW movie
-// listings; rows imported before the filter (or that slip past it) stay live.
-// Each scan, re-check every live event against the movie/cinema policy and
-// expire any that match — so the catalogue self-corrects without manual SQL.
-async function archiveMovieEvents(): Promise<number> {
+// Self-healing content-policy guard. The import filter only blocks NEW
+// disallowed listings; rows imported before the filter (or that slip past it)
+// stay live. Each scan, re-check every live event against the movie/cinema AND
+// tender/notice/non-public policies and expire any that match — so the
+// catalogue self-corrects without manual SQL.
+async function archiveDisallowedEvents(): Promise<number> {
   const live = await prisma.event.findMany({
     where: { status: { in: ["PUBLISHED", "WATCHLIST"] } },
     select: {
@@ -189,14 +190,16 @@ async function archiveMovieEvents(): Promise<number> {
       address: true,
     },
   });
-  const movieIds = live
-    .filter((e) =>
-      isMovieContent(e.title, e.shortDescription, e.description, e.venueName, e.address)
+  const badIds = live
+    .filter(
+      (e) =>
+        isMovieContent(e.title, e.shortDescription, e.description, e.venueName, e.address) ||
+        isNonPublicListing(e.title, e.shortDescription, e.description)
     )
     .map((e) => e.id);
-  if (movieIds.length === 0) return 0;
+  if (badIds.length === 0) return 0;
   const res = await prisma.event.updateMany({
-    where: { id: { in: movieIds } },
+    where: { id: { in: badIds } },
     data: { status: "EXPIRED" },
   });
   return res.count;
@@ -243,7 +246,7 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
     const title = event.title.trim();
     const description = (event.description || event.date?.when || title).trim();
     // Content policy: never import movie / cinema ticketing listings.
-    if (isMovieContent(title, description, event.venue?.name)) continue;
+    if (isDisallowedEvent(title, description, event.venue?.name)) continue;
     const venueName = event.venue?.name || event.address?.[0] || "Venue to be announced";
     const startDate = parseSerpDate(event.date?.start_date || event.date?.when);
     if (!startDate) continue; // skip events we cannot date reliably
@@ -314,7 +317,7 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
   const results: SourceResult[] = [];
 
   const expired = await expirePastEvents();
-  const moviesArchived = await archiveMovieEvents();
+  const moviesArchived = await archiveDisallowedEvents();
 
   const apiKey = process.env.SERPAPI_KEY;
   const queries = (process.env.SCAN_QUERIES || "")
@@ -368,7 +371,7 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
         expired,
         message:
           moviesArchived > 0
-            ? `${r.message ? r.message + " · " : ""}${moviesArchived} movie listing(s) auto-archived`
+            ? `${r.message ? r.message + " · " : ""}${moviesArchived} disallowed listing(s) auto-archived`
             : r.message || null,
         startedAt,
         finishedAt,
