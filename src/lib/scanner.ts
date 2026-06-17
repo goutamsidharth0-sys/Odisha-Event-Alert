@@ -312,6 +312,291 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// Social hashtag scanning — Instagram/Facebook events (esp. clubs & DJ nights).
+//
+// Meta does NOT allow open hashtag scraping. Two sanctioned routes, each gated
+// behind a credential the operator provisions (so this stays ToS-compliant and
+// never logs into / scrapes gated pages directly):
+//   1. Instagram Graph API "Hashtag Search"  (IG_GRAPH_TOKEN + IG_USER_ID)
+//   2. A third-party scraper, Apify          (APIFY_TOKEN)
+// Posts that look like events become WATCHLIST listings (source=Instagram,
+// unverified) — i.e. they show as "Rumoured" until an admin confirms them.
+// ---------------------------------------------------------------------------
+const SOCIAL_SOURCE = "Instagram";
+const GRAPH_VERSION = "v21.0";
+
+// Odisha club / DJ / nightlife / event hashtags. IG Graph allows ~30 unique
+// hashtag queries per rolling 7 days, so keep the daily set small. Override
+// with SCAN_HASHTAGS (comma separated, with or without the leading #).
+const DEFAULT_HASHTAGS = [
+  "bhubaneswarnightlife",
+  "bhubaneswarevents",
+  "odishaevents",
+  "djnightbhubaneswar",
+];
+
+const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+// Captions rarely carry a full date; understand "tonight", "tomorrow" and
+// "this saturday" too, then fall back to the month/day parser.
+export function parseSocialDate(text: string | undefined, now = new Date()): Date | null {
+  if (!text) return null;
+  // Normalise ordinals ("6th Dec", "21st Jan") so the day number is parseable.
+  const t = text.toLowerCase().replace(/(\d{1,2})(st|nd|rd|th)\b/g, "$1");
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  if (/\b(tonight|today)\b/.test(t)) return today;
+  if (/\btomorrow\b/.test(t)) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + 1);
+    return d;
+  }
+  for (let i = 0; i < 7; i++) {
+    const wd = WEEKDAYS[i];
+    if (new RegExp(`\\b(${wd}|${wd.slice(0, 3)})\\b`).test(t)) {
+      const d = new Date(today);
+      const delta = ((i - d.getDay() + 7) % 7) || 7; // next occurrence
+      d.setDate(d.getDate() + delta);
+      return d;
+    }
+  }
+  return parseSerpDate(t, now);
+}
+
+async function upsertSocialPost(args: {
+  caption: string;
+  mediaUrl: string | null;
+  permalink: string | null;
+  postId: string;
+  result: SourceResult;
+}): Promise<void> {
+  const { caption, mediaUrl, permalink, postId, result } = args;
+  const cleaned = caption.replace(/#[\p{L}\p{N}_]+/gu, " ").replace(/\s+/g, " ").trim();
+  const title = (cleaned.split(/[\n.!|–\-•]/)[0] || cleaned).trim().substring(0, 90);
+  if (!title || title.length < 4) return;
+  // Content policy: no movies / tenders / non-public listings.
+  if (isDisallowedEvent(title, caption)) return;
+
+  const startDate = parseSocialDate(caption);
+  if (!startDate) return; // require a parseable date to avoid noise
+
+  const cityInfo = detectCity([caption]);
+  const city = await ensureCity(cityInfo.name, cityInfo.district);
+  const rule = inferCategory(title, caption);
+  const category = await ensureCategory(rule.name, rule.slug, rule.icon);
+
+  const slug = `social-ig-${slugify(postId)}`.substring(0, 90);
+  const existing = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
+
+  await prisma.event.upsert({
+    where: { slug },
+    update: {
+      shortDescription: cleaned.substring(0, 200),
+      posterUrl: mediaUrl || FALLBACK_POSTER,
+      sourceUrl: permalink || null,
+      instagramUrl: permalink || null,
+      // status intentionally not updated: keep admin moderation decisions
+    },
+    create: {
+      title,
+      slug,
+      shortDescription: cleaned.substring(0, 200),
+      description: cleaned || title,
+      categoryId: category.id,
+      cityId: city.id,
+      organizerType: "PRIVATE",
+      eventType: "OFFLINE",
+      status: "WATCHLIST", // social finds are rumoured until an admin verifies
+      startDate,
+      venueName: "See Instagram post for venue",
+      district: city.district,
+      priceType: "NOT_ANNOUNCED",
+      posterUrl: mediaUrl || FALLBACK_POSTER,
+      sourceName: SOCIAL_SOURCE,
+      sourceUrl: permalink || null,
+      instagramUrl: permalink || null,
+      isVerified: false,
+      seoTitle: `${title} | Odisha Event Alert`,
+      seoDescription: cleaned.substring(0, 160),
+    },
+  });
+
+  if (existing) result.updated++;
+  else result.created++;
+}
+
+interface GraphMedia {
+  id: string;
+  caption?: string;
+  media_type?: string;
+  media_url?: string;
+  permalink?: string;
+  timestamp?: string;
+}
+
+// Official Instagram Graph API hashtag search.
+async function scanInstagramGraph(hashtags: string[], token: string, userId: string): Promise<SourceResult> {
+  const result: SourceResult = {
+    source: SOCIAL_SOURCE,
+    query: hashtags.map((h) => `#${h}`).join(" "),
+    status: "SUCCESS",
+    found: 0,
+    created: 0,
+    updated: 0,
+  };
+  const base = `https://graph.facebook.com/${GRAPH_VERSION}`;
+
+  for (const tag of hashtags) {
+    const idRes = await fetch(
+      `${base}/ig_hashtag_search?user_id=${encodeURIComponent(userId)}&q=${encodeURIComponent(tag)}&access_token=${encodeURIComponent(token)}`,
+      { cache: "no-store" }
+    );
+    const idJson = await idRes.json();
+    if (idJson.error) throw new Error(`IG hashtag "${tag}": ${idJson.error.message || idJson.error}`);
+    const hashtagId = idJson.data?.[0]?.id;
+    if (!hashtagId) continue;
+
+    const mediaRes = await fetch(
+      `${base}/${hashtagId}/recent_media?user_id=${encodeURIComponent(userId)}&fields=id,caption,media_type,media_url,permalink,timestamp&limit=25&access_token=${encodeURIComponent(token)}`,
+      { cache: "no-store" }
+    );
+    const mediaJson = await mediaRes.json();
+    if (mediaJson.error) throw new Error(`IG media "${tag}": ${mediaJson.error.message || mediaJson.error}`);
+    const items: GraphMedia[] = mediaJson.data || [];
+    result.found += items.length;
+
+    for (const m of items) {
+      if (!m.caption) continue;
+      await upsertSocialPost({
+        caption: m.caption,
+        mediaUrl: m.media_type === "IMAGE" || m.media_type === "CAROUSEL_ALBUM" ? m.media_url || null : null,
+        permalink: m.permalink || null,
+        postId: m.id,
+        result,
+      });
+    }
+  }
+  return result;
+}
+
+interface ApifyPost {
+  id?: string;
+  shortCode?: string;
+  caption?: string;
+  text?: string;
+  url?: string;
+  displayUrl?: string;
+  imageUrl?: string;
+}
+
+// Optional third-party scraper (Apify Instagram Hashtag Scraper).
+async function scanApifyHashtags(hashtags: string[], token: string): Promise<SourceResult> {
+  const result: SourceResult = {
+    source: "Instagram (Apify)",
+    query: hashtags.map((h) => `#${h}`).join(" "),
+    status: "SUCCESS",
+    found: 0,
+    created: 0,
+    updated: 0,
+  };
+  const res = await fetch(
+    `https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hashtags, resultsLimit: 15 }),
+      cache: "no-store",
+    }
+  );
+  if (!res.ok) throw new Error(`Apify request failed with status ${res.status}`);
+  const items: ApifyPost[] = await res.json();
+  result.found = Array.isArray(items) ? items.length : 0;
+
+  for (const it of Array.isArray(items) ? items : []) {
+    const caption = it.caption || it.text || "";
+    if (!caption) continue;
+    await upsertSocialPost({
+      caption,
+      mediaUrl: it.displayUrl || it.imageUrl || null,
+      permalink: it.url || null,
+      postId: it.id || it.shortCode || slugify(caption).substring(0, 40),
+      result,
+    });
+  }
+  return result;
+}
+
+// Runs the configured social providers; returns one SourceResult per provider.
+async function scanSocialHashtags(): Promise<SourceResult[]> {
+  const out: SourceResult[] = [];
+  const hashtags = (process.env.SCAN_HASHTAGS || "")
+    .split(",")
+    .map((h) => h.trim().replace(/^#/, ""))
+    .filter(Boolean);
+  const tags = hashtags.length ? hashtags : DEFAULT_HASHTAGS;
+  const igToken = process.env.IG_GRAPH_TOKEN;
+  const igUser = process.env.IG_USER_ID;
+  const apifyToken = process.env.APIFY_TOKEN;
+
+  if (!igToken && !apifyToken) {
+    out.push({
+      source: SOCIAL_SOURCE,
+      query: tags.map((h) => `#${h}`).join(" "),
+      status: "SKIPPED",
+      found: 0,
+      created: 0,
+      updated: 0,
+      message:
+        "Instagram/Facebook hashtag scan is off. Set IG_GRAPH_TOKEN + IG_USER_ID (official Instagram Graph API) or APIFY_TOKEN (third-party scraper) to enable.",
+    });
+    return out;
+  }
+
+  if (igToken && igUser) {
+    try {
+      out.push(await scanInstagramGraph(tags, igToken, igUser));
+    } catch (error) {
+      out.push({
+        source: SOCIAL_SOURCE,
+        query: tags.map((h) => `#${h}`).join(" "),
+        status: "ERROR",
+        found: 0,
+        created: 0,
+        updated: 0,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  } else if (igToken && !igUser) {
+    out.push({
+      source: SOCIAL_SOURCE,
+      query: "",
+      status: "SKIPPED",
+      found: 0,
+      created: 0,
+      updated: 0,
+      message: "IG_GRAPH_TOKEN is set but IG_USER_ID is missing (the connected Instagram Business account ID).",
+    });
+  }
+
+  if (apifyToken) {
+    try {
+      out.push(await scanApifyHashtags(tags, apifyToken));
+    } catch (error) {
+      out.push({
+        source: "Instagram (Apify)",
+        query: tags.map((h) => `#${h}`).join(" "),
+        status: "ERROR",
+        found: 0,
+        created: 0,
+        updated: 0,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return out;
+}
+
 export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSummary> {
   const startedAt = new Date();
   const results: SourceResult[] = [];
@@ -353,6 +638,21 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
         });
       }
     }
+  }
+
+  // Social hashtag scan (Instagram/Facebook) — clubs, DJ nights & Odisha events.
+  try {
+    results.push(...(await scanSocialHashtags()));
+  } catch (error) {
+    results.push({
+      source: SOCIAL_SOURCE,
+      query: "",
+      status: "ERROR",
+      found: 0,
+      created: 0,
+      updated: 0,
+      message: error instanceof Error ? error.message : String(error),
+    });
   }
 
   const finishedAt = new Date();
