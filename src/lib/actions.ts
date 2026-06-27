@@ -11,8 +11,26 @@ import {
   MOVIE_REJECTION_MESSAGE,
   NON_PUBLIC_REJECTION_MESSAGE,
 } from "@/lib/contentPolicy";
+import {
+  eventSubmissionSchema,
+  leadSchema,
+  registerInterestSchema,
+  subscribeSchema,
+  adminEventSchema,
+  firstError,
+} from "@/lib/validation";
 
-const JWT_SECRET = process.env.JWT_SECRET || "odisha-event-alert-super-secret-key-2026";
+// Admin session secret. No insecure fallback: if JWT_SECRET is missing we
+// fail CLOSED (throw) rather than signing/verifying with a public default.
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 16) {
+    throw new Error(
+      "JWT_SECRET is not configured (or is too short). Set a strong, secret JWT_SECRET in the environment."
+    );
+  }
+  return secret;
+}
 const SESSION_COOKIE_NAME = "admin_session";
 
 // -------------------------------------------------------------
@@ -46,7 +64,7 @@ export async function adminLoginAction(prevState: any, formData: FormData) {
     // Sign JWT
     const token = jwt.sign(
       { userId: user.id, name: user.name, email: user.email, role: user.role },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: "1d" }
     );
 
@@ -82,7 +100,7 @@ export async function verifyAdminSession() {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, getJwtSecret()) as {
       userId: string;
       name: string;
       email: string;
@@ -128,8 +146,21 @@ export async function submitEventAction(formData: FormData) {
 
     const promoInterests = formData.getAll("promotionInterest") as string[];
 
-    if (!eventTitle || !description || !startDateStr || !venueName || !city || !organizerName || !phone) {
-      return { success: false, error: "Please fill in all required fields marked with *." };
+    const valid = eventSubmissionSchema.safeParse({
+      eventTitle,
+      category,
+      eventType,
+      organizerType,
+      description,
+      startDate: startDateStr,
+      venueName,
+      city,
+      organizerName,
+      phone,
+      email: email || "",
+    });
+    if (!valid.success) {
+      return { success: false, error: firstError(valid.error) };
     }
 
     // Content policy: no movies / cinema ticketing listings.
@@ -189,8 +220,9 @@ export async function submitLeadAction(formData: FormData) {
     const message = formData.get("message") as string;
     const sourcePage = formData.get("sourcePage") as string;
 
-    if (!name || !phone || !email || !leadType || !message) {
-      return { success: false, error: "Please fill in all required fields." };
+    const valid = leadSchema.safeParse({ name, phone, email, leadType, message, companyName, sourcePage });
+    if (!valid.success) {
+      return { success: false, error: firstError(valid.error) };
     }
 
     await prisma.lead.create({
@@ -215,9 +247,11 @@ export async function submitLeadAction(formData: FormData) {
 
 export async function subscribeAction(email: string, name?: string, phone?: string, city?: string, interests?: string) {
   try {
-    if (!email) {
-      return { success: false, error: "Email is required." };
+    const valid = subscribeSchema.safeParse({ email });
+    if (!valid.success) {
+      return { success: false, error: firstError(valid.error) };
     }
+    email = valid.data.email;
 
     // Check if already subscribed
     const existing = await prisma.subscriber.findUnique({
@@ -263,6 +297,10 @@ export async function createEventAction(data: any) {
   const session = await verifyAdminSession();
   if (!session) throw new Error("Unauthorized");
 
+  const valid = adminEventSchema.safeParse(data);
+  if (!valid.success) {
+    return { success: false, error: firstError(valid.error) };
+  }
   if (isMovieContent(data.title, data.shortDescription, data.description, data.sourceName, data.venueName)) {
     return { success: false, error: MOVIE_REJECTION_MESSAGE };
   }
@@ -326,6 +364,10 @@ export async function updateEventAction(id: string, data: any) {
   const session = await verifyAdminSession();
   if (!session) throw new Error("Unauthorized");
 
+  const valid = adminEventSchema.safeParse(data);
+  if (!valid.success) {
+    return { success: false, error: firstError(valid.error) };
+  }
   if (isMovieContent(data.title, data.shortDescription, data.description, data.sourceName, data.venueName)) {
     return { success: false, error: MOVIE_REJECTION_MESSAGE };
   }
@@ -435,21 +477,32 @@ function generateRegistrationCode(): string {
 
 export async function registerInterestAction(prevState: any, formData: FormData) {
   try {
-    const eventId = (formData.get("eventId") as string)?.trim();
-    const name = (formData.get("name") as string)?.trim();
-    const mobile = (formData.get("mobile") as string)?.trim();
-    const email = (formData.get("email") as string)?.trim() || null;
-    const city = (formData.get("city") as string)?.trim() || null;
-    const attendeeCount = Math.min(Math.max(parseInt(formData.get("attendeeCount") as string) || 1, 1), 10);
     const consentEventUpdates = formData.get("consentEventUpdates") === "on";
     const consentSimilarAlerts = formData.get("consentSimilarAlerts") === "on";
-    const notes = (formData.get("notes") as string)?.trim() || null;
 
-    if (!eventId) return { success: false, error: "Missing event reference. Please reload the page." };
-    if (!name || name.length < 2) return { success: false, error: "Please enter your name." };
-    if (!/^[6-9]\d{9}$/.test(mobile || "")) return { success: false, error: "Enter a valid 10-digit mobile number." };
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { success: false, error: "Enter a valid email address." };
-    if (!consentEventUpdates) return { success: false, error: "Please agree to receive updates for this event." };
+    const valid = registerInterestSchema.safeParse({
+      eventId: formData.get("eventId"),
+      name: formData.get("name"),
+      mobile: formData.get("mobile"),
+      email: formData.get("email") || "",
+      city: (formData.get("city") as string) || undefined,
+      attendeeCount: formData.get("attendeeCount"),
+      notes: (formData.get("notes") as string) || undefined,
+    });
+    if (!valid.success) {
+      return { success: false, error: firstError(valid.error) };
+    }
+    if (!consentEventUpdates) {
+      return { success: false, error: "Please agree to receive updates for this event." };
+    }
+
+    const eventId = valid.data.eventId;
+    const name = valid.data.name;
+    const mobile = valid.data.mobile;
+    const email = valid.data.email || null;
+    const city = valid.data.city || null;
+    const attendeeCount = valid.data.attendeeCount;
+    const notes = valid.data.notes || null;
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
