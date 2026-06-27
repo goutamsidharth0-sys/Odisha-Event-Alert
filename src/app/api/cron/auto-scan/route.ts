@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { runAutoScan } from "@/lib/scanner";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,10 @@ export async function GET(request: Request) {
 
   try {
     const summary = await runAutoScan("CRON");
+    // Refresh the cached public pages so newly scanned events appear promptly.
+    revalidatePath("/");
+    revalidatePath("/events");
+    revalidatePath("/sitemap.xml");
     return NextResponse.json({ success: true, ...summary });
   } catch (error) {
     console.error("Cron auto-scan error:", error);
