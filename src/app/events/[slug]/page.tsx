@@ -10,6 +10,7 @@ import RegisterInterestPanel from "@/components/RegisterInterestPanel";
 import SaveShareButtons from "@/components/SaveShareButtons";
 import EventShareBar from "@/components/EventShareBar";
 import MobileRegisterBar from "@/components/MobileRegisterBar";
+import ViewPing from "@/components/ViewPing";
 import { OeaVerifiedBadge, WatchlistBadge, priceLabel, SourceStatusBar } from "@/components/badges";
 import { SITE_URL, breadcrumbJsonLd } from "@/lib/seo";
 import { EVENT_TRUST_NOTE } from "@/lib/contentPolicy";
@@ -27,6 +28,22 @@ import {
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+// Serve a cached page, re-rendered at most once / 10 min per event. Events
+// created after a build still render on first hit then cache (dynamicParams).
+export const revalidate = 600;
+
+export async function generateStaticParams() {
+  try {
+    const events = await prisma.event.findMany({
+      where: { status: { in: ["PUBLISHED", "WATCHLIST"] } },
+      select: { slug: true },
+    });
+    return events.map((e) => ({ slug: e.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -66,10 +83,8 @@ export default async function EventDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Increment views count asynchronously (fire and forget)
-  prisma.event
-    .update({ where: { id: event.id }, data: { viewsCount: { increment: 1 } } })
-    .catch(() => {});
+  // View counting happens via a client ping (<ViewPing/>) so this page can stay
+  // a cached static file instead of writing to the DB on every render.
 
   const [relatedEvents, cities] = await Promise.all([
     prisma.event.findMany({
@@ -169,6 +184,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   return (
     <div className="pb-28 lg:pb-20">
+      <ViewPing id={event.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

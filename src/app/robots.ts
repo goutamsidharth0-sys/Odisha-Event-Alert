@@ -9,7 +9,9 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/'],
+        // Keep crawl budget on clean canonical paths; don't crawl query-string
+        // filter permutations (?city=, ?category=, ?search= …) or admin.
+        disallow: ['/admin/', '/*?'],
       },
       // Explicitly Allow AI Search Engines (AI SEO optimization)
       // Reference: awesome-skills/ai-seo

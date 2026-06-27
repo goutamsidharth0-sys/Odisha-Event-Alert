@@ -2,7 +2,9 @@ import { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL, cityPath, categoryPath } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+// Rebuild the sitemap at most hourly; served cached in between so crawler hits
+// don't trigger heavy DB queries on every request.
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
