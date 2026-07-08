@@ -216,3 +216,14 @@ model Subscriber {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Frequent-source logger: tallies handles seen across social scans so recurring
+// venue/promoter accounts surface for promotion into the monitored SCAN_PAGES list.
+model SourceSignal {
+  handle    String   @id                       // instagram username, lowercased
+  hits      Int      @default(0)               // times seen across scans
+  kind      String?                            // "author" | "mention"
+  sampleUrl String?                            // an example post
+  lastSeen  DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+}

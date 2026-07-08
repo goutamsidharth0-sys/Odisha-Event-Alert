@@ -480,47 +480,118 @@ async function scanInstagramGraph(hashtags: string[], token: string, userId: str
   return result;
 }
 
-interface ApifyPost {
+// ---------------------------------------------------------------------------
+// Apify · apidojo/instagram-scraper (pay-per-result, ~$0.50/1k posts + $0.005/query).
+// ONE run covers hashtags AND pages via directUrls. Every post is also fed to the
+// frequent-source logger, so recurring venue/promoter handles surface for promotion
+// to the monitored-pages list. NOTE: field names follow the actor's current schema
+// (owner = `ownerUsername`); confirm on the Input/Dataset tab if a field is empty.
+// ---------------------------------------------------------------------------
+const APIFY_ACTOR = process.env.APIFY_ACTOR || "apidojo~instagram-scraper";
+
+interface ApifyItem {
   id?: string;
   shortCode?: string;
+  code?: string;
   caption?: string;
-  text?: string;
+  ownerUsername?: string;
   url?: string;
   displayUrl?: string;
   imageUrl?: string;
+  mentions?: string[];
+  timestamp?: string;
 }
 
-// Optional third-party scraper (Apify Instagram Hashtag Scraper).
-async function scanApifyHashtags(hashtags: string[], token: string): Promise<SourceResult> {
+const apifyCaption = (it: ApifyItem) => (it.caption || "").trim();
+const apifyCode = (it: ApifyItem) => it.shortCode || it.code;
+const apifyImage = (it: ApifyItem) => it.displayUrl || it.imageUrl || null;
+const apifyPermalink = (it: ApifyItem): string | null => {
+  const code = apifyCode(it);
+  return it.url || (code ? `https://www.instagram.com/p/${code}/` : null);
+};
+
+// --- Frequent-source logger: tally who posts under your event tags ----------
+const HANDLE_RE = /@([a-zA-Z0-9._]{2,30})/g;
+
+async function recordSourceSignals(it: ApifyItem, monitored: Set<string>): Promise<void> {
+  const candidates = new Map<string, string>(); // handle -> kind
+  if (it.ownerUsername) candidates.set(it.ownerUsername.toLowerCase(), "author");
+  for (const m of it.mentions || []) candidates.set(m.toLowerCase(), "mention");
+  let match: RegExpExecArray | null;
+  const caption = apifyCaption(it);
+  while ((match = HANDLE_RE.exec(caption))) {
+    const h = match[1].toLowerCase();
+    if (!candidates.has(h)) candidates.set(h, "mention");
+  }
+  const sample = apifyPermalink(it);
+  for (const [handle, kind] of candidates) {
+    if (!handle || monitored.has(handle)) continue; // skip pages you already watch
+    await prisma.sourceSignal.upsert({
+      where: { handle },
+      update: { hits: { increment: 1 }, lastSeen: new Date(), sampleUrl: sample || undefined },
+      create: { handle, hits: 1, kind, sampleUrl: sample || null },
+    });
+  }
+}
+
+async function scanApifyUrls(tags: string[], pages: string[], token: string): Promise<SourceResult> {
   const result: SourceResult = {
     source: "Instagram (Apify)",
-    query: hashtags.map((h) => `#${h}`).join(" "),
+    query: [...tags.map((t) => `#${t}`), ...pages.map((p) => `@${p}`)].join(" "),
     status: "SUCCESS",
     found: 0,
     created: 0,
     updated: 0,
   };
+
+  const directUrls = [
+    ...tags.map((t) => `https://www.instagram.com/explore/tags/${encodeURIComponent(t)}/`),
+    ...pages.map((p) => `https://www.instagram.com/${encodeURIComponent(p)}/`),
+  ];
+  if (directUrls.length === 0) {
+    return { ...result, status: "SKIPPED", message: "No tags or pages configured." };
+  }
+
+  const input: Record<string, unknown> = {
+    directUrls,
+    resultsType: "posts",
+    resultsLimit: Number(process.env.APIFY_RESULTS_LIMIT || 5),
+  };
+  // Optional freshness filter — enable only after confirming the field name on the
+  // actor's Input tab (older posts you re-pull still cost money).
+  const newerDays = Number(process.env.APIFY_NEWER_THAN_DAYS || 0);
+  if (newerDays > 0) {
+    input.onlyPostsNewerThan = new Date(Date.now() - newerDays * 864e5).toISOString().slice(0, 10);
+  }
+
   const res = await fetch(
-    `https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
+    `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hashtags, resultsLimit: 15 }),
+      body: JSON.stringify(input),
       cache: "no-store",
     }
   );
-  if (!res.ok) throw new Error(`Apify request failed with status ${res.status}`);
-  const items: ApifyPost[] = await res.json();
+  if (!res.ok) throw new Error(`Apify (${APIFY_ACTOR}) failed: HTTP ${res.status}`);
+  const items: ApifyItem[] = await res.json();
   result.found = Array.isArray(items) ? items.length : 0;
 
+  const monitored = new Set(pages.map((p) => p.toLowerCase()));
   for (const it of Array.isArray(items) ? items : []) {
-    const caption = it.caption || it.text || "";
+    // Log the handle signal even if the post isn't an event — that's the discovery value.
+    try {
+      await recordSourceSignals(it, monitored);
+    } catch {
+      /* logger is best-effort; never fail a scan over it */
+    }
+    const caption = apifyCaption(it);
     if (!caption) continue;
     await upsertSocialPost({
       caption,
-      mediaUrl: it.displayUrl || it.imageUrl || null,
-      permalink: it.url || null,
-      postId: it.id || it.shortCode || slugify(caption).substring(0, 40),
+      mediaUrl: apifyImage(it),
+      permalink: apifyPermalink(it),
+      postId: it.id || apifyCode(it) || slugify(caption).substring(0, 40),
       result,
     });
   }
@@ -538,6 +609,10 @@ async function scanSocialHashtags(): Promise<SourceResult[]> {
   const igToken = process.env.IG_GRAPH_TOKEN;
   const igUser = process.env.IG_USER_ID;
   const apifyToken = process.env.APIFY_TOKEN;
+  const apifyPages = (process.env.SCAN_PAGES || "")
+    .split(",")
+    .map((p) => p.trim().replace(/^@/, ""))
+    .filter(Boolean);
 
   if (!igToken && !apifyToken) {
     out.push({
@@ -581,11 +656,11 @@ async function scanSocialHashtags(): Promise<SourceResult[]> {
 
   if (apifyToken) {
     try {
-      out.push(await scanApifyHashtags(tags, apifyToken));
+      out.push(await scanApifyUrls(tags, apifyPages, apifyToken));
     } catch (error) {
       out.push({
         source: "Instagram (Apify)",
-        query: tags.map((h) => `#${h}`).join(" "),
+        query: [...tags.map((h) => `#${h}`), ...apifyPages.map((p) => `@${p}`)].join(" "),
         status: "ERROR",
         found: 0,
         created: 0,
