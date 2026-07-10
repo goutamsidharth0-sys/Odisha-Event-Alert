@@ -98,6 +98,7 @@ model Event {
   isFeatured       Boolean      @default(false)
   isTrending       Boolean      @default(false)
   isVerified       Boolean      @default(false)
+  confidenceScore  Int? // 0-100 reliability score for auto-scanned events; >=80 auto-publishes
   viewsCount       Int          @default(0)
   shareCount       Int          @default(0)
   seoTitle         String?

@@ -157,6 +157,36 @@ async function ensureCategory(name: string, slug: string, icon: string) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Confidence scoring. Auto-scanned events only publish themselves when the
+// collected details are reliable enough (>= AUTO_PUBLISH_THRESHOLD); everything
+// else waits in WATCHLIST for admin review. Deterministic and cheap — no LLM.
+// ---------------------------------------------------------------------------
+export const AUTO_PUBLISH_THRESHOLD = 80;
+
+const PLACEHOLDER_VENUES = ["venue to be announced", "see instagram post for venue"];
+
+export function scoreEventConfidence(e: {
+  venueName?: string | null;
+  address?: string | null;
+  description?: string | null;
+  posterUrl?: string | null;
+  sourceUrl?: string | null;
+  sourceName?: string | null;
+}): number {
+  let score = 25; // has a parseable future date (imports without one are skipped)
+  const venue = (e.venueName || "").trim().toLowerCase();
+  if (venue && !PLACEHOLDER_VENUES.includes(venue)) score += 20;
+  if (e.address && e.address.trim().length > 0) score += 10;
+  if ((e.description || "").trim().length >= 60) score += 10;
+  if (e.posterUrl && e.posterUrl !== FALLBACK_POSTER) score += 10;
+  if (e.sourceUrl) score += 10;
+  // Source reputation: structured aggregators beat social captions.
+  if (e.sourceName === SOURCE_NAME) score += 15;
+  else if (e.sourceName) score += 5;
+  return Math.min(score, 100);
+}
+
 // Mark past events as EXPIRED so the public listing stays fresh.
 async function expirePastEvents(): Promise<number> {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -200,6 +230,83 @@ async function archiveDisallowedEvents(): Promise<number> {
   if (badIds.length === 0) return 0;
   const res = await prisma.event.updateMany({
     where: { id: { in: badIds } },
+    data: { status: "EXPIRED" },
+  });
+  return res.count;
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate remover. Different agents (Google, Instagram, submissions) can land
+// the same event under different slugs. Each scan, group live upcoming events
+// by city + calendar day, normalize titles, and expire near-identical copies —
+// keeping the most trustworthy record (verified > manual > higher confidence >
+// oldest). Runs without any external calls.
+// ---------------------------------------------------------------------------
+function normalizeTitle(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function isSameEventTitle(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+  return shorter.length >= 12 && longer.includes(shorter);
+}
+
+async function dedupeEvents(): Promise<number> {
+  const live = await prisma.event.findMany({
+    where: {
+      status: { in: ["PUBLISHED", "WATCHLIST"] },
+      startDate: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    },
+    select: {
+      id: true,
+      title: true,
+      cityId: true,
+      startDate: true,
+      isVerified: true,
+      sourceName: true,
+      confidenceScore: true,
+      createdAt: true,
+    },
+  });
+
+  // Group by city + calendar day; only same-day same-city events can collide.
+  const groups = new Map<string, typeof live>();
+  for (const e of live) {
+    const key = `${e.cityId}:${e.startDate.toISOString().slice(0, 10)}`;
+    const g = groups.get(key);
+    if (g) g.push(e);
+    else groups.set(key, [e]);
+  }
+
+  // Trust order: verified first, then manual/organizer entries (no sourceName),
+  // then higher confidence, then the oldest record.
+  const trust = (e: (typeof live)[number]) =>
+    [e.isVerified ? 0 : 1, e.sourceName ? 1 : 0, -(e.confidenceScore ?? 0), e.createdAt.getTime()] as const;
+
+  const loserIds: string[] = [];
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const sorted = [...group].sort((a, b) => {
+      const ta = trust(a);
+      const tb = trust(b);
+      for (let i = 0; i < ta.length; i++) {
+        if (ta[i] !== tb[i]) return ta[i] < tb[i] ? -1 : 1;
+      }
+      return 0;
+    });
+    const kept: { id: string; norm: string }[] = [];
+    for (const e of sorted) {
+      const norm = normalizeTitle(e.title);
+      if (kept.some((k) => isSameEventTitle(k.norm, norm))) loserIds.push(e.id);
+      else kept.push({ id: e.id, norm });
+    }
+  }
+
+  if (loserIds.length === 0) return 0;
+  const res = await prisma.event.updateMany({
+    where: { id: { in: loserIds } },
     data: { status: "EXPIRED" },
   });
   return res.count;
@@ -266,17 +373,30 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
     const slug = `auto-${slugify(title).substring(0, 60)}-${city.slug}`.substring(0, 90);
     const existing = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
 
+    const address = event.address?.join(", ") || null;
+    const posterUrl = event.image || event.thumbnail || FALLBACK_POSTER;
+    const confidence = scoreEventConfidence({
+      venueName,
+      address,
+      description,
+      posterUrl,
+      sourceUrl: event.link || null,
+      sourceName: SOURCE_NAME,
+    });
+    const autoPublish = confidence >= AUTO_PUBLISH_THRESHOLD;
+
     await prisma.event.upsert({
       where: { slug },
       update: {
         shortDescription: description.substring(0, 200),
         description,
         venueName,
-        address: event.address?.join(", ") || null,
+        address,
         startDate,
-        posterUrl: event.image || event.thumbnail || FALLBACK_POSTER,
+        posterUrl,
         ticketingUrl: ticketLink,
         sourceUrl: event.link || null,
+        confidenceScore: confidence,
         // status intentionally not updated: keep admin moderation decisions
       },
       create: {
@@ -288,20 +408,21 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
         cityId: city.id,
         organizerType: "PUBLIC",
         eventType: "OFFLINE",
-        status: "PUBLISHED",
+        status: autoPublish ? "PUBLISHED" : "WATCHLIST",
         startDate,
         venueName,
-        address: event.address?.join(", ") || null,
+        address,
         district: city.district,
         priceType: "NOT_ANNOUNCED",
-        posterUrl: event.image || event.thumbnail || FALLBACK_POSTER,
+        posterUrl,
         ticketingUrl: ticketLink,
         sourceName: SOURCE_NAME,
         sourceUrl: event.link || null,
         isVerified: false,
+        confidenceScore: confidence,
         seoTitle: `${title} | Odisha Event Alert`,
         seoDescription: description.substring(0, 160),
-        publishedAt: new Date(),
+        publishedAt: autoPublish ? new Date() : null,
       },
     });
 
@@ -389,6 +510,17 @@ async function upsertSocialPost(args: {
   const slug = `social-ig-${slugify(postId)}`.substring(0, 90);
   const existing = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
 
+  const venueName = "See Instagram post for venue";
+  const confidence = scoreEventConfidence({
+    venueName,
+    address: null,
+    description: cleaned,
+    posterUrl: mediaUrl || FALLBACK_POSTER,
+    sourceUrl: permalink || null,
+    sourceName: SOCIAL_SOURCE,
+  });
+  const autoPublish = confidence >= AUTO_PUBLISH_THRESHOLD;
+
   await prisma.event.upsert({
     where: { slug },
     update: {
@@ -396,6 +528,7 @@ async function upsertSocialPost(args: {
       posterUrl: mediaUrl || FALLBACK_POSTER,
       sourceUrl: permalink || null,
       instagramUrl: permalink || null,
+      confidenceScore: confidence,
       // status intentionally not updated: keep admin moderation decisions
     },
     create: {
@@ -407,9 +540,10 @@ async function upsertSocialPost(args: {
       cityId: city.id,
       organizerType: "PRIVATE",
       eventType: "OFFLINE",
-      status: "WATCHLIST", // social finds are rumoured until an admin verifies
+      // Social finds stay rumoured (WATCHLIST) unless reliably detailed (>=80).
+      status: autoPublish ? "PUBLISHED" : "WATCHLIST",
       startDate,
-      venueName: "See Instagram post for venue",
+      venueName,
       district: city.district,
       priceType: "NOT_ANNOUNCED",
       posterUrl: mediaUrl || FALLBACK_POSTER,
@@ -417,8 +551,10 @@ async function upsertSocialPost(args: {
       sourceUrl: permalink || null,
       instagramUrl: permalink || null,
       isVerified: false,
+      confidenceScore: confidence,
       seoTitle: `${title} | Odisha Event Alert`,
       seoDescription: cleaned.substring(0, 160),
+      publishedAt: autoPublish ? new Date() : null,
     },
   });
 
@@ -679,6 +815,7 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
 
   const expired = await expirePastEvents();
   const moviesArchived = await archiveDisallowedEvents();
+  const duplicatesRemoved = await dedupeEvents();
 
   const apiKey = process.env.SERPAPI_KEY;
   const queries = (process.env.SCAN_QUERIES || "")
@@ -746,9 +883,13 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
         updated: r.updated,
         expired,
         message:
-          moviesArchived > 0
-            ? `${r.message ? r.message + " · " : ""}${moviesArchived} disallowed listing(s) auto-archived`
-            : r.message || null,
+          [
+            r.message,
+            moviesArchived > 0 ? `${moviesArchived} disallowed listing(s) auto-archived` : null,
+            duplicatesRemoved > 0 ? `${duplicatesRemoved} duplicate(s) auto-removed` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || null,
         startedAt,
         finishedAt,
       },
