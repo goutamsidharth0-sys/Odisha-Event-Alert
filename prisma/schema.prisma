@@ -7,14 +7,15 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String     @unique
   passwordHash String
-  role         String   @default("ADMIN") // SUPER_ADMIN, ADMIN
-  status       String   @default("ACTIVE") // ACTIVE, INACTIVE
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         String     @default("ADMIN") // SUPER_ADMIN, ADMIN, ORGANIZER
+  status       String     @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  organizer    Organizer? // set when role is ORGANIZER
 }
 
 model Category {
@@ -47,6 +48,8 @@ model City {
 
 model Organizer {
   id            String   @id @default(uuid())
+  userId        String?  @unique // login account (role ORGANIZER), created by admin after verification
+  user          User?    @relation(fields: [userId], references: [id])
   name          String
   contactPerson String?
   phone         String?
@@ -98,6 +101,7 @@ model Event {
   isFeatured       Boolean      @default(false)
   isTrending       Boolean      @default(false)
   isVerified       Boolean      @default(false)
+  confidenceScore  Int? // 0-100 reliability score for auto-scanned events; >=80 auto-publishes
   viewsCount       Int          @default(0)
   shareCount       Int          @default(0)
   seoTitle         String?
@@ -202,6 +206,18 @@ model ScanLog {
   message    String?
   startedAt  DateTime  @default(now())
   finishedAt DateTime?
+}
+
+// Frequent-source logger. Every Instagram post the Apify scan touches has its
+// author + mentioned handles tallied here, so recurring venue/promoter accounts
+// surface for promotion into SCAN_PAGES. Pure discovery signal, not an event.
+model SourceSignal {
+  handle    String   @id // instagram username, lowercased
+  hits      Int      @default(0) // times seen across scans
+  kind      String? // "author" | "mention"
+  sampleUrl String? // an example post
+  lastSeen  DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model Subscriber {

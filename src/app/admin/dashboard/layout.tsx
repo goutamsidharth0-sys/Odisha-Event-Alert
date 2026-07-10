@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { verifyAdminSession, adminLogoutAction } from "@/lib/actions";
-import { Calendar, LayoutDashboard, Database, ClipboardList, Inbox, LogOut, ShieldAlert, Radar, Ticket } from "lucide-react";
+import { Calendar, LayoutDashboard, Database, ClipboardList, Inbox, LogOut, ShieldAlert, Radar, Ticket, Users } from "lucide-react";
 
 // Admin dashboard is session-scoped and reads live data — never prerender it.
 export const dynamic = "force-dynamic";
@@ -23,6 +23,7 @@ export default async function AdminDashboardLayout({
     { name: "Manage Events", href: "/admin/dashboard/events", icon: Database },
     { name: "Auto-Scan Engine", href: "/admin/dashboard/autoscan", icon: Radar },
     { name: "Registrations", href: "/admin/dashboard/registrations", icon: Ticket },
+    { name: "Organizers", href: "/admin/dashboard/organizers", icon: Users },
     { name: "Review Submissions", href: "/admin/dashboard/submissions", icon: ClipboardList },
     { name: "Leads & Subscribers", href: "/admin/dashboard/leads", icon: Inbox },
   ];

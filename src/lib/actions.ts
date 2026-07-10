@@ -8,9 +8,11 @@ import bcrypt from "bcryptjs";
 import {
   isMovieContent,
   isNonPublicListing,
+  isConferenceContent,
   MOVIE_REJECTION_MESSAGE,
   NON_PUBLIC_REJECTION_MESSAGE,
 } from "@/lib/contentPolicy";
+import { scoreEventConfidence, AUTO_PUBLISH_THRESHOLD } from "@/lib/scanner";
 import {
   eventSubmissionSchema,
   leadSchema,
@@ -91,24 +93,308 @@ export async function adminLogoutAction() {
   return { success: true };
 }
 
-export async function verifyAdminSession() {
+interface SessionPayload {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  organizerId?: string;
+}
+
+async function decodeSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-
-  if (!token) {
+  if (!token) return null;
+  try {
+    return jwt.verify(token, getJwtSecret()) as SessionPayload;
+  } catch {
     return null;
+  }
+}
+
+export async function verifyAdminSession() {
+  const session = await decodeSession();
+  // Organizer sessions share the cookie but must never unlock the admin area.
+  if (!session || (session.role !== "ADMIN" && session.role !== "SUPER_ADMIN")) {
+    return null;
+  }
+  return session;
+}
+
+// -------------------------------------------------------------
+// Organizer Authentication & Dashboard Actions
+// Accounts are created ONLY by an admin after verifying the organizer.
+// -------------------------------------------------------------
+
+export async function verifyOrganizerSession() {
+  const session = await decodeSession();
+  if (!session || session.role !== "ORGANIZER" || !session.organizerId) {
+    return null;
+  }
+  return session as SessionPayload & { organizerId: string };
+}
+
+export async function organizerLoginAction(prevState: any, formData: FormData) {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  if (!email || !password) {
+    return { success: false, error: "Please enter both email and password." };
   }
 
   try {
-    const decoded = jwt.verify(token, getJwtSecret()) as {
-      userId: string;
-      name: string;
-      email: string;
-      role: string;
-    };
-    return decoded;
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { organizer: { select: { id: true } } },
+    });
+    if (!user || user.status !== "ACTIVE" || user.role !== "ORGANIZER" || !user.organizer) {
+      return { success: false, error: "Invalid credentials or inactive organizer account." };
+    }
+    if (!bcrypt.compareSync(password, user.passwordHash)) {
+      return { success: false, error: "Incorrect password. Please try again." };
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        organizerId: user.organizer.id,
+      },
+      getJwtSecret(),
+      { expiresIn: "1d" }
+    );
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24,
+      path: "/",
+    });
+    return { success: true };
   } catch (error) {
-    return null;
+    console.error("Organizer login error:", error);
+    return { success: false, error: "An unexpected error occurred during login." };
+  }
+}
+
+const CONFERENCE_REJECTION_MESSAGE =
+  "Odisha Event Alert covers events & entertainment (concerts, DJ nights, open mics, fests, workshops, meetups) — formal conferences and seminars are out of scope.";
+
+function organizerEventSlug(title: string): string {
+  const base = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .substring(0, 70);
+  return `${base}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+// Create or update one of the organizer's own events. Publishes instantly when
+// the details score >= AUTO_PUBLISH_THRESHOLD (and pass content policy);
+// otherwise the event waits as PENDING for admin approval.
+export async function saveOrganizerEventAction(prevState: any, formData: FormData) {
+  const session = await verifyOrganizerSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const id = (formData.get("id") as string) || null;
+  const data = {
+    title: ((formData.get("title") as string) || "").trim(),
+    description: ((formData.get("description") as string) || "").trim(),
+    categoryId: (formData.get("categoryId") as string) || "",
+    cityId: (formData.get("cityId") as string) || "",
+    startDate: (formData.get("startDate") as string) || "",
+    endDate: (formData.get("endDate") as string) || "",
+    startTime: (formData.get("startTime") as string) || "",
+    endTime: (formData.get("endTime") as string) || "",
+    venueName: ((formData.get("venueName") as string) || "").trim(),
+    address: ((formData.get("address") as string) || "").trim(),
+    googleMapUrl: ((formData.get("googleMapUrl") as string) || "").trim(),
+    priceType: (formData.get("priceType") as string) || "FREE",
+    registrationUrl: ((formData.get("registrationUrl") as string) || "").trim(),
+    officialUrl: ((formData.get("officialUrl") as string) || "").trim(),
+    instagramUrl: ((formData.get("instagramUrl") as string) || "").trim(),
+    posterUrl: ((formData.get("posterUrl") as string) || "").trim(),
+  };
+
+  if (!data.title || !data.description || !data.categoryId || !data.cityId || !data.startDate || !data.venueName) {
+    return { success: false, error: "Title, description, category, city, date and venue are required." };
+  }
+  if (isMovieContent(data.title, data.description, data.venueName)) {
+    return { success: false, error: MOVIE_REJECTION_MESSAGE };
+  }
+  if (isNonPublicListing(data.title, data.description)) {
+    return { success: false, error: NON_PUBLIC_REJECTION_MESSAGE };
+  }
+  if (isConferenceContent(data.title, data.description)) {
+    return { success: false, error: CONFERENCE_REJECTION_MESSAGE };
+  }
+
+  const confidence = scoreEventConfidence({
+    venueName: data.venueName,
+    address: data.address || null,
+    description: data.description,
+    posterUrl: data.posterUrl || null,
+    sourceUrl: data.registrationUrl || data.officialUrl || data.instagramUrl || null,
+    sourceName: "Organizer",
+  });
+  const status = confidence >= AUTO_PUBLISH_THRESHOLD ? "PUBLISHED" : "PENDING";
+
+  const shared = {
+    title: data.title,
+    shortDescription: data.description.substring(0, 200),
+    description: data.description,
+    categoryId: data.categoryId,
+    cityId: data.cityId,
+    startDate: new Date(data.startDate),
+    endDate: data.endDate ? new Date(data.endDate) : null,
+    startTime: data.startTime || null,
+    endTime: data.endTime || null,
+    venueName: data.venueName,
+    address: data.address || null,
+    googleMapUrl: data.googleMapUrl || null,
+    priceType: data.priceType,
+    registrationUrl: data.registrationUrl || null,
+    officialUrl: data.officialUrl || null,
+    instagramUrl: data.instagramUrl || null,
+    posterUrl:
+      data.posterUrl ||
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop",
+    confidenceScore: confidence,
+    seoTitle: `${data.title} | Odisha Event Alert`,
+    seoDescription: data.description.substring(0, 160),
+  };
+
+  try {
+    let slug: string;
+    if (id) {
+      const existing = await prisma.event.findUnique({ where: { id } });
+      if (!existing || existing.organizerId !== session.organizerId) {
+        return { success: false, error: "Event not found in your account." };
+      }
+      slug = existing.slug;
+      await prisma.event.update({
+        where: { id },
+        data: {
+          ...shared,
+          status,
+          publishedAt: status === "PUBLISHED" && !existing.publishedAt ? new Date() : existing.publishedAt,
+        },
+      });
+    } else {
+      slug = organizerEventSlug(data.title);
+      await prisma.event.create({
+        data: {
+          ...shared,
+          slug,
+          organizerId: session.organizerId,
+          organizerType: "PRIVATE",
+          eventType: "OFFLINE",
+          status,
+          createdBy: session.userId,
+          publishedAt: status === "PUBLISHED" ? new Date() : null,
+        },
+      });
+    }
+    revalidatePath("/");
+    revalidatePath("/events");
+    revalidatePath(`/events/${slug}`);
+    revalidatePath("/organizer/dashboard");
+    return {
+      success: true,
+      published: status === "PUBLISHED",
+      message:
+        status === "PUBLISHED"
+          ? "Your event is live."
+          : "Saved — details need admin review before going live (add a poster, address and links to publish instantly).",
+    };
+  } catch (error) {
+    console.error("Save organizer event error:", error);
+    return { success: false, error: "Failed to save the event." };
+  }
+}
+
+async function requireOwnEvent(id: string, organizerId: string) {
+  const event = await prisma.event.findUnique({ where: { id }, select: { id: true, organizerId: true, slug: true } });
+  if (!event || event.organizerId !== organizerId) throw new Error("Event not found in your account.");
+  return event;
+}
+
+export async function deleteOrganizerEventAction(id: string) {
+  const session = await verifyOrganizerSession();
+  if (!session) throw new Error("Unauthorized");
+  await requireOwnEvent(id, session.organizerId);
+  await prisma.event.delete({ where: { id } });
+  revalidatePath("/events");
+  revalidatePath("/organizer/dashboard");
+  return { success: true };
+}
+
+export async function archiveOrganizerEventAction(id: string) {
+  const session = await verifyOrganizerSession();
+  if (!session) throw new Error("Unauthorized");
+  await requireOwnEvent(id, session.organizerId);
+  await prisma.event.update({ where: { id }, data: { status: "EXPIRED" } });
+  revalidatePath("/events");
+  revalidatePath("/organizer/dashboard");
+  return { success: true };
+}
+
+export async function duplicateOrganizerEventAction(id: string) {
+  const session = await verifyOrganizerSession();
+  if (!session) throw new Error("Unauthorized");
+  await requireOwnEvent(id, session.organizerId);
+  const source = await prisma.event.findUnique({ where: { id } });
+  if (!source) return { success: false, error: "Event not found." };
+  const { id: _id, slug: _slug, createdAt: _c, updatedAt: _u, publishedAt: _p, viewsCount: _v, shareCount: _s, ...rest } = source;
+  await prisma.event.create({
+    data: {
+      ...rest,
+      title: `${source.title} (Copy)`,
+      slug: organizerEventSlug(source.title),
+      status: "DRAFT",
+      publishedAt: null,
+    },
+  });
+  revalidatePath("/organizer/dashboard");
+  return { success: true };
+}
+
+// Admin creates the login for a verified organizer profile.
+export async function createOrganizerAccountAction(prevState: any, formData: FormData) {
+  const admin = await verifyAdminSession();
+  if (!admin) throw new Error("Unauthorized");
+
+  const organizerId = (formData.get("organizerId") as string)?.trim();
+  const name = (formData.get("name") as string)?.trim();
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const password = formData.get("password") as string;
+
+  if (!organizerId || !name || !email || !password || password.length < 8) {
+    return { success: false, error: "All fields are required (password at least 8 characters)." };
+  }
+
+  try {
+    const organizer = await prisma.organizer.findUnique({ where: { id: organizerId } });
+    if (!organizer) return { success: false, error: "Organizer profile not found." };
+    if (organizer.userId) return { success: false, error: "This organizer already has a login." };
+    if (await prisma.user.findUnique({ where: { email } })) {
+      return { success: false, error: "A user with this email already exists." };
+    }
+
+    const user = await prisma.user.create({
+      data: { name, email, passwordHash: bcrypt.hashSync(password, 10), role: "ORGANIZER" },
+    });
+    await prisma.organizer.update({
+      where: { id: organizerId },
+      data: { userId: user.id, status: "VERIFIED" },
+    });
+    revalidatePath("/admin/dashboard/organizers");
+    return { success: true };
+  } catch (error) {
+    console.error("Create organizer account error:", error);
+    return { success: false, error: "Failed to create the organizer account." };
   }
 }
 

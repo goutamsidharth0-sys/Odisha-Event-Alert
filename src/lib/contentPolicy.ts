@@ -111,9 +111,33 @@ export function isNonPublicListing(...parts: (string | null | undefined)[]): boo
   return NON_PUBLIC_KEYWORDS.some((kw) => haystack.includes(kw));
 }
 
+// Formal conferences / seminars are out of scope: OEA covers events &
+// entertainment (concerts, DJ nights, fests, open mics, meetups). Casual
+// meetups, networking and workshops stay ALLOWED — only formal conference
+// formats are rejected. Padded word-ish matching avoids blocking a venue that
+// merely happens to be a "convention centre".
+export const CONFERENCE_KEYWORDS = [
+  " conference ",
+  " seminar ",
+  " symposium ",
+  " summit ",
+  " conclave ",
+  " b2b expo ",
+];
+
+export function isConferenceContent(...parts: (string | null | undefined)[]): boolean {
+  const haystack = ` ${parts.filter(Boolean).join(" ").toLowerCase()} `;
+  if (haystack.trim().length === 0) return false;
+  return CONFERENCE_KEYWORDS.some((kw) => haystack.includes(kw));
+}
+
 // Single guard used by submissions, admin publishing and the importer.
 export function isDisallowedEvent(...parts: (string | null | undefined)[]): boolean {
-  return isMovieContent(...parts) || isNonPublicListing(...parts);
+  return (
+    isMovieContent(...parts) ||
+    isNonPublicListing(...parts) ||
+    isConferenceContent(...parts)
+  );
 }
 
 export const NON_PUBLIC_REJECTION_MESSAGE =

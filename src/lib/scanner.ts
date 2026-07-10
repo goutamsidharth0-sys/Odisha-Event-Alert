@@ -52,7 +52,7 @@ const CATEGORY_RULES: { keywords: string[]; name: string; slug: string; icon: st
   { keywords: ["concert", "music", "live", "band", "singer", "gig"], name: "Concerts", slug: "concerts", icon: "Music" },
   { keywords: ["workshop", "masterclass", "bootcamp", "training"], name: "Workshops", slug: "workshops", icon: "Compass" },
   { keywords: ["food", "culinary", "flea"], name: "Food Festivals", slug: "food-festivals", icon: "Utensils" },
-  { keywords: ["startup", "business", "summit", "conference", "seminar", "expo b2b"], name: "Business Events", slug: "business", icon: "Briefcase" },
+  { keywords: ["startup", "meetup", "networking", "pitch", "hackathon"], name: "Startup & Meetups", slug: "startup-meetups", icon: "Briefcase" },
   { keywords: ["marathon", "run", "cricket", "hockey", "football", "tournament", "sports"], name: "Sports", slug: "sports", icon: "Trophy" },
   { keywords: ["yoga", "fitness", "meditation", "wellness"], name: "Fitness & Yoga", slug: "fitness", icon: "Heart" },
   { keywords: ["exhibition", "expo", "fair", "trade", "book"], name: "Exhibitions", slug: "exhibitions", icon: "Layers" },
@@ -157,6 +157,36 @@ async function ensureCategory(name: string, slug: string, icon: string) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Confidence scoring. Auto-scanned events only publish themselves when the
+// collected details are reliable enough (>= AUTO_PUBLISH_THRESHOLD); everything
+// else waits in WATCHLIST for admin review. Deterministic and cheap — no LLM.
+// ---------------------------------------------------------------------------
+export const AUTO_PUBLISH_THRESHOLD = 80;
+
+const PLACEHOLDER_VENUES = ["venue to be announced", "see instagram post for venue"];
+
+export function scoreEventConfidence(e: {
+  venueName?: string | null;
+  address?: string | null;
+  description?: string | null;
+  posterUrl?: string | null;
+  sourceUrl?: string | null;
+  sourceName?: string | null;
+}): number {
+  let score = 25; // has a parseable future date (imports without one are skipped)
+  const venue = (e.venueName || "").trim().toLowerCase();
+  if (venue && !PLACEHOLDER_VENUES.includes(venue)) score += 20;
+  if (e.address && e.address.trim().length > 0) score += 10;
+  if ((e.description || "").trim().length >= 60) score += 10;
+  if (e.posterUrl && e.posterUrl !== FALLBACK_POSTER) score += 10;
+  if (e.sourceUrl) score += 10;
+  // Source reputation: structured aggregators beat social captions.
+  if (e.sourceName === SOURCE_NAME) score += 15;
+  else if (e.sourceName) score += 5;
+  return Math.min(score, 100);
+}
+
 // Mark past events as EXPIRED so the public listing stays fresh.
 async function expirePastEvents(): Promise<number> {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -200,6 +230,83 @@ async function archiveDisallowedEvents(): Promise<number> {
   if (badIds.length === 0) return 0;
   const res = await prisma.event.updateMany({
     where: { id: { in: badIds } },
+    data: { status: "EXPIRED" },
+  });
+  return res.count;
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate remover. Different agents (Google, Instagram, submissions) can land
+// the same event under different slugs. Each scan, group live upcoming events
+// by city + calendar day, normalize titles, and expire near-identical copies —
+// keeping the most trustworthy record (verified > manual > higher confidence >
+// oldest). Runs without any external calls.
+// ---------------------------------------------------------------------------
+function normalizeTitle(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function isSameEventTitle(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+  return shorter.length >= 12 && longer.includes(shorter);
+}
+
+async function dedupeEvents(): Promise<number> {
+  const live = await prisma.event.findMany({
+    where: {
+      status: { in: ["PUBLISHED", "WATCHLIST"] },
+      startDate: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    },
+    select: {
+      id: true,
+      title: true,
+      cityId: true,
+      startDate: true,
+      isVerified: true,
+      sourceName: true,
+      confidenceScore: true,
+      createdAt: true,
+    },
+  });
+
+  // Group by city + calendar day; only same-day same-city events can collide.
+  const groups = new Map<string, typeof live>();
+  for (const e of live) {
+    const key = `${e.cityId}:${e.startDate.toISOString().slice(0, 10)}`;
+    const g = groups.get(key);
+    if (g) g.push(e);
+    else groups.set(key, [e]);
+  }
+
+  // Trust order: verified first, then manual/organizer entries (no sourceName),
+  // then higher confidence, then the oldest record.
+  const trust = (e: (typeof live)[number]) =>
+    [e.isVerified ? 0 : 1, e.sourceName ? 1 : 0, -(e.confidenceScore ?? 0), e.createdAt.getTime()] as const;
+
+  const loserIds: string[] = [];
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const sorted = [...group].sort((a, b) => {
+      const ta = trust(a);
+      const tb = trust(b);
+      for (let i = 0; i < ta.length; i++) {
+        if (ta[i] !== tb[i]) return ta[i] < tb[i] ? -1 : 1;
+      }
+      return 0;
+    });
+    const kept: { id: string; norm: string }[] = [];
+    for (const e of sorted) {
+      const norm = normalizeTitle(e.title);
+      if (kept.some((k) => isSameEventTitle(k.norm, norm))) loserIds.push(e.id);
+      else kept.push({ id: e.id, norm });
+    }
+  }
+
+  if (loserIds.length === 0) return 0;
+  const res = await prisma.event.updateMany({
+    where: { id: { in: loserIds } },
     data: { status: "EXPIRED" },
   });
   return res.count;
@@ -266,17 +373,30 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
     const slug = `auto-${slugify(title).substring(0, 60)}-${city.slug}`.substring(0, 90);
     const existing = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
 
+    const address = event.address?.join(", ") || null;
+    const posterUrl = event.image || event.thumbnail || FALLBACK_POSTER;
+    const confidence = scoreEventConfidence({
+      venueName,
+      address,
+      description,
+      posterUrl,
+      sourceUrl: event.link || null,
+      sourceName: SOURCE_NAME,
+    });
+    const autoPublish = confidence >= AUTO_PUBLISH_THRESHOLD;
+
     await prisma.event.upsert({
       where: { slug },
       update: {
         shortDescription: description.substring(0, 200),
         description,
         venueName,
-        address: event.address?.join(", ") || null,
+        address,
         startDate,
-        posterUrl: event.image || event.thumbnail || FALLBACK_POSTER,
+        posterUrl,
         ticketingUrl: ticketLink,
         sourceUrl: event.link || null,
+        confidenceScore: confidence,
         // status intentionally not updated: keep admin moderation decisions
       },
       create: {
@@ -288,20 +408,21 @@ async function scanGoogleEvents(query: string, apiKey: string): Promise<SourceRe
         cityId: city.id,
         organizerType: "PUBLIC",
         eventType: "OFFLINE",
-        status: "PUBLISHED",
+        status: autoPublish ? "PUBLISHED" : "WATCHLIST",
         startDate,
         venueName,
-        address: event.address?.join(", ") || null,
+        address,
         district: city.district,
         priceType: "NOT_ANNOUNCED",
-        posterUrl: event.image || event.thumbnail || FALLBACK_POSTER,
+        posterUrl,
         ticketingUrl: ticketLink,
         sourceName: SOURCE_NAME,
         sourceUrl: event.link || null,
         isVerified: false,
+        confidenceScore: confidence,
         seoTitle: `${title} | Odisha Event Alert`,
         seoDescription: description.substring(0, 160),
-        publishedAt: new Date(),
+        publishedAt: autoPublish ? new Date() : null,
       },
     });
 
@@ -389,6 +510,17 @@ async function upsertSocialPost(args: {
   const slug = `social-ig-${slugify(postId)}`.substring(0, 90);
   const existing = await prisma.event.findUnique({ where: { slug }, select: { id: true } });
 
+  const venueName = "See Instagram post for venue";
+  const confidence = scoreEventConfidence({
+    venueName,
+    address: null,
+    description: cleaned,
+    posterUrl: mediaUrl || FALLBACK_POSTER,
+    sourceUrl: permalink || null,
+    sourceName: SOCIAL_SOURCE,
+  });
+  const autoPublish = confidence >= AUTO_PUBLISH_THRESHOLD;
+
   await prisma.event.upsert({
     where: { slug },
     update: {
@@ -396,6 +528,7 @@ async function upsertSocialPost(args: {
       posterUrl: mediaUrl || FALLBACK_POSTER,
       sourceUrl: permalink || null,
       instagramUrl: permalink || null,
+      confidenceScore: confidence,
       // status intentionally not updated: keep admin moderation decisions
     },
     create: {
@@ -407,9 +540,10 @@ async function upsertSocialPost(args: {
       cityId: city.id,
       organizerType: "PRIVATE",
       eventType: "OFFLINE",
-      status: "WATCHLIST", // social finds are rumoured until an admin verifies
+      // Social finds stay rumoured (WATCHLIST) unless reliably detailed (>=80).
+      status: autoPublish ? "PUBLISHED" : "WATCHLIST",
       startDate,
-      venueName: "See Instagram post for venue",
+      venueName,
       district: city.district,
       priceType: "NOT_ANNOUNCED",
       posterUrl: mediaUrl || FALLBACK_POSTER,
@@ -417,8 +551,10 @@ async function upsertSocialPost(args: {
       sourceUrl: permalink || null,
       instagramUrl: permalink || null,
       isVerified: false,
+      confidenceScore: confidence,
       seoTitle: `${title} | Odisha Event Alert`,
       seoDescription: cleaned.substring(0, 160),
+      publishedAt: autoPublish ? new Date() : null,
     },
   });
 
@@ -480,47 +616,119 @@ async function scanInstagramGraph(hashtags: string[], token: string, userId: str
   return result;
 }
 
-interface ApifyPost {
+// ---------------------------------------------------------------------------
+// Apify · apidojo/instagram-scraper (pay-per-result, ~$0.50/1k posts + $0.005/query).
+// ONE run covers hashtags AND pages via directUrls. Every post is also fed to the
+// frequent-source logger, so recurring venue/promoter handles surface for promotion
+// to the monitored-pages list. NOTE: field names follow the actor's current schema
+// (owner = `ownerUsername`); confirm on the Input/Dataset tab if a field is empty.
+// ---------------------------------------------------------------------------
+const APIFY_ACTOR = process.env.APIFY_ACTOR || "apidojo~instagram-scraper";
+
+interface ApifyItem {
   id?: string;
   shortCode?: string;
+  code?: string;
   caption?: string;
-  text?: string;
+  ownerUsername?: string;
   url?: string;
   displayUrl?: string;
   imageUrl?: string;
+  mentions?: string[];
+  timestamp?: string;
 }
 
-// Optional third-party scraper (Apify Instagram Hashtag Scraper).
-async function scanApifyHashtags(hashtags: string[], token: string): Promise<SourceResult> {
+const apifyCaption = (it: ApifyItem) => (it.caption || "").trim();
+const apifyCode = (it: ApifyItem) => it.shortCode || it.code;
+const apifyImage = (it: ApifyItem) => it.displayUrl || it.imageUrl || null;
+const apifyPermalink = (it: ApifyItem): string | null => {
+  const code = apifyCode(it);
+  return it.url || (code ? `https://www.instagram.com/p/${code}/` : null);
+};
+
+// --- Frequent-source logger: tally who posts under your event tags ----------
+const HANDLE_RE = /@([a-zA-Z0-9._]{2,30})/g;
+
+async function recordSourceSignals(it: ApifyItem, monitored: Set<string>): Promise<void> {
+  const candidates = new Map<string, string>(); // handle -> kind
+  if (it.ownerUsername) candidates.set(it.ownerUsername.toLowerCase(), "author");
+  for (const m of it.mentions || []) candidates.set(m.toLowerCase(), "mention");
+  let match: RegExpExecArray | null;
+  const caption = apifyCaption(it);
+  while ((match = HANDLE_RE.exec(caption))) {
+    const h = match[1].toLowerCase();
+    if (!candidates.has(h)) candidates.set(h, "mention");
+  }
+  const sample = apifyPermalink(it);
+  for (const [handle, kind] of candidates) {
+    if (!handle || monitored.has(handle)) continue; // skip pages you already watch
+    await prisma.sourceSignal.upsert({
+      where: { handle },
+      update: { hits: { increment: 1 }, lastSeen: new Date(), sampleUrl: sample || undefined },
+      create: { handle, hits: 1, kind, sampleUrl: sample || null },
+    });
+  }
+}
+
+// Scans hashtags AND business pages in one Apify run, logging every handle seen.
+async function scanApifyUrls(tags: string[], pages: string[], token: string): Promise<SourceResult> {
   const result: SourceResult = {
     source: "Instagram (Apify)",
-    query: hashtags.map((h) => `#${h}`).join(" "),
+    query: [...tags.map((t) => `#${t}`), ...pages.map((p) => `@${p}`)].join(" "),
     status: "SUCCESS",
     found: 0,
     created: 0,
     updated: 0,
   };
+
+  const directUrls = [
+    ...tags.map((t) => `https://www.instagram.com/explore/tags/${encodeURIComponent(t)}/`),
+    ...pages.map((p) => `https://www.instagram.com/${encodeURIComponent(p)}/`),
+  ];
+  if (directUrls.length === 0) {
+    return { ...result, status: "SKIPPED", message: "No tags or pages configured." };
+  }
+
+  const input: Record<string, unknown> = {
+    directUrls,
+    resultsType: "posts",
+    resultsLimit: Number(process.env.APIFY_RESULTS_LIMIT || 5),
+  };
+  // Optional freshness filter — enable only after confirming the field name on the
+  // actor's Input tab (older posts you re-pull still cost money).
+  const newerDays = Number(process.env.APIFY_NEWER_THAN_DAYS || 0);
+  if (newerDays > 0) {
+    input.onlyPostsNewerThan = new Date(Date.now() - newerDays * 864e5).toISOString().slice(0, 10);
+  }
+
   const res = await fetch(
-    `https://api.apify.com/v2/acts/apify~instagram-hashtag-scraper/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
+    `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hashtags, resultsLimit: 15 }),
+      body: JSON.stringify(input),
       cache: "no-store",
     }
   );
-  if (!res.ok) throw new Error(`Apify request failed with status ${res.status}`);
-  const items: ApifyPost[] = await res.json();
+  if (!res.ok) throw new Error(`Apify (${APIFY_ACTOR}) failed: HTTP ${res.status}`);
+  const items: ApifyItem[] = await res.json();
   result.found = Array.isArray(items) ? items.length : 0;
 
+  const monitored = new Set(pages.map((p) => p.toLowerCase()));
   for (const it of Array.isArray(items) ? items : []) {
-    const caption = it.caption || it.text || "";
+    // Log the handle signal even if the post isn't an event — that's the discovery value.
+    try {
+      await recordSourceSignals(it, monitored);
+    } catch {
+      /* logger is best-effort; never fail a scan over it */
+    }
+    const caption = apifyCaption(it);
     if (!caption) continue;
     await upsertSocialPost({
       caption,
-      mediaUrl: it.displayUrl || it.imageUrl || null,
-      permalink: it.url || null,
-      postId: it.id || it.shortCode || slugify(caption).substring(0, 40),
+      mediaUrl: apifyImage(it),
+      permalink: apifyPermalink(it),
+      postId: it.id || apifyCode(it) || slugify(caption).substring(0, 40),
       result,
     });
   }
@@ -535,6 +743,10 @@ async function scanSocialHashtags(): Promise<SourceResult[]> {
     .map((h) => h.trim().replace(/^#/, ""))
     .filter(Boolean);
   const tags = hashtags.length ? hashtags : DEFAULT_HASHTAGS;
+  const apifyPages = (process.env.SCAN_PAGES || "")
+    .split(",")
+    .map((p) => p.trim().replace(/^@/, ""))
+    .filter(Boolean);
   const igToken = process.env.IG_GRAPH_TOKEN;
   const igUser = process.env.IG_USER_ID;
   const apifyToken = process.env.APIFY_TOKEN;
@@ -581,11 +793,11 @@ async function scanSocialHashtags(): Promise<SourceResult[]> {
 
   if (apifyToken) {
     try {
-      out.push(await scanApifyHashtags(tags, apifyToken));
+      out.push(await scanApifyUrls(tags, apifyPages, apifyToken));
     } catch (error) {
       out.push({
         source: "Instagram (Apify)",
-        query: tags.map((h) => `#${h}`).join(" "),
+        query: "",
         status: "ERROR",
         found: 0,
         created: 0,
@@ -603,6 +815,7 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
 
   const expired = await expirePastEvents();
   const moviesArchived = await archiveDisallowedEvents();
+  const duplicatesRemoved = await dedupeEvents();
 
   const apiKey = process.env.SERPAPI_KEY;
   const queries = (process.env.SCAN_QUERIES || "")
@@ -670,9 +883,13 @@ export async function runAutoScan(trigger: "CRON" | "MANUAL"): Promise<ScanSumma
         updated: r.updated,
         expired,
         message:
-          moviesArchived > 0
-            ? `${r.message ? r.message + " · " : ""}${moviesArchived} disallowed listing(s) auto-archived`
-            : r.message || null,
+          [
+            r.message,
+            moviesArchived > 0 ? `${moviesArchived} disallowed listing(s) auto-archived` : null,
+            duplicatesRemoved > 0 ? `${duplicatesRemoved} duplicate(s) auto-removed` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || null,
         startedAt,
         finishedAt,
       },
