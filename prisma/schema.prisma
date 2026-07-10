@@ -7,14 +7,15 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String     @unique
   passwordHash String
-  role         String   @default("ADMIN") // SUPER_ADMIN, ADMIN
-  status       String   @default("ACTIVE") // ACTIVE, INACTIVE
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         String     @default("ADMIN") // SUPER_ADMIN, ADMIN, ORGANIZER
+  status       String     @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  organizer    Organizer? // set when role is ORGANIZER
 }
 
 model Category {
@@ -47,6 +48,8 @@ model City {
 
 model Organizer {
   id            String   @id @default(uuid())
+  userId        String?  @unique // login account (role ORGANIZER), created by admin after verification
+  user          User?    @relation(fields: [userId], references: [id])
   name          String
   contactPerson String?
   phone         String?
