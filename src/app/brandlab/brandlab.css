@@ -1,0 +1,261 @@
+/* ============================================================
+   FIRST PAGE — BRAND LAB
+   Design language per spec §8: crop marks and registration marks,
+   ink black / warm paper / signal yellow, modern minimalist.
+
+   Scoped to `.brandlab` so the section can live inside the host site
+   without either identity leaking into the other.
+   ============================================================ */
+
+.brandlab {
+  --fp-ink: #141414;
+  --fp-ink-soft: #4a4a4a;
+  --fp-paper: #f6f2e9;
+  --fp-paper-deep: #ece6d8;
+  --fp-signal: #f5c518;
+  --fp-line: rgba(20, 20, 20, 0.14);
+  --fp-line-strong: rgba(20, 20, 20, 0.32);
+
+  background: var(--fp-paper);
+  color: var(--fp-ink);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+.brandlab ::selection {
+  background: var(--fp-signal);
+  color: var(--fp-ink);
+}
+
+/* ---- Crop marks framing the working area ---- */
+.fp-crop {
+  position: relative;
+}
+.fp-crop::before,
+.fp-crop::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+.fp-crop::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid var(--fp-line-strong);
+  border-left: 1px solid var(--fp-line-strong);
+}
+.fp-crop::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 1px solid var(--fp-line-strong);
+  border-right: 1px solid var(--fp-line-strong);
+}
+
+/* ---- Registration mark ---- */
+.fp-reg {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--fp-line-strong);
+  border-radius: 50%;
+  position: relative;
+  flex: none;
+}
+.fp-reg::before,
+.fp-reg::after {
+  content: "";
+  position: absolute;
+  background: var(--fp-line-strong);
+}
+.fp-reg::before {
+  left: -5px;
+  right: -5px;
+  top: 50%;
+  height: 1px;
+}
+.fp-reg::after {
+  top: -5px;
+  bottom: -5px;
+  left: 50%;
+  width: 1px;
+}
+
+/* ---- Type ---- */
+.fp-eyebrow {
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fp-ink-soft);
+}
+.fp-display {
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.fp-mono {
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+}
+
+/* ---- Controls ---- */
+.fp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.95rem 1.5rem;
+  border: 1px solid var(--fp-ink);
+  background: var(--fp-ink);
+  color: var(--fp-paper);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+.fp-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.fp-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.fp-btn--signal {
+  background: var(--fp-signal);
+  border-color: var(--fp-signal);
+  color: var(--fp-ink);
+}
+.fp-btn--ghost {
+  background: transparent;
+  color: var(--fp-ink);
+  border-color: var(--fp-line-strong);
+}
+.fp-btn--ghost:hover:not(:disabled) {
+  border-color: var(--fp-ink);
+}
+
+.fp-field {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid var(--fp-line);
+  color: var(--fp-ink);
+  font-size: 1rem;
+}
+.fp-field:focus {
+  outline: 2px solid var(--fp-signal);
+  outline-offset: -1px;
+  border-color: var(--fp-ink);
+}
+
+/* ---- Choice tiles ---- */
+.fp-choice {
+  text-align: left;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--fp-line);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+.fp-choice:hover {
+  border-color: var(--fp-ink);
+}
+.fp-choice[aria-pressed="true"],
+.fp-choice[data-selected="true"] {
+  border-color: var(--fp-ink);
+  box-shadow: inset 0 0 0 1px var(--fp-ink);
+}
+.fp-choice[data-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  inset-block-start: 0.75rem;
+  width: 10px;
+  height: 10px;
+  background: var(--fp-signal);
+}
+
+/* ---- Swatch reveal (Screen 2) ---- */
+.fp-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--fp-line);
+  animation: fp-swatch-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes fp-swatch-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+}
+
+/* ---- Analysis scanner ---- */
+.fp-scan {
+  position: relative;
+  overflow: hidden;
+}
+.fp-scan::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 2px;
+  background: var(--fp-signal);
+  box-shadow: 0 0 18px 3px rgba(245, 197, 24, 0.55);
+  animation: fp-scan 1.5s ease-in-out infinite;
+}
+@keyframes fp-scan {
+  0% { top: 4%; }
+  50% { top: 94%; }
+  100% { top: 4%; }
+}
+
+/* ---- Photo composite ---- */
+/* `isolation` keeps the multiply blend inside the tile instead of reaching
+   through to the page behind it. */
+.fp-composite {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--fp-paper-deep);
+}
+.fp-composite__base,
+.fp-composite__shading {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.fp-composite__shading {
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.fp-composite__logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  /* The projective transform is supplied inline as matrix3d(). */
+  will-change: transform;
+}
+.fp-composite__logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-scan::after {
+    animation: none;
+    top: 50%;
+  }
+  .fp-swatch {
+    animation: none;
+  }
+  .fp-btn:hover:not(:disabled) {
+    transform: none;
+  }
+}

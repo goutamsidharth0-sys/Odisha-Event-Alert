@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/auto-scan",
       "schedule": "30 21 * * *"
+    },
+    {
+      "path": "/api/cron/brandlab-purge",
+      "schedule": "0 20 * * *"
     }
   ]
 }

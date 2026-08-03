@@ -22,7 +22,7 @@ model Category {
   name        String
   slug        String   @unique
   description String?
-  icon        String?  // icon name (e.g., "Music", "Calendar", etc.)
+  icon        String? // icon name (e.g., "Music", "Calendar", etc.)
   imageUrl    String?
   status      String   @default("ACTIVE") // ACTIVE, INACTIVE
   sortOrder   Int      @default(0)
@@ -62,20 +62,20 @@ model Organizer {
 }
 
 model Event {
-  id               String       @id @default(uuid())
+  id               String         @id @default(uuid())
   title            String
-  slug             String       @unique
+  slug             String         @unique
   shortDescription String?
   description      String
   categoryId       String
-  category         Category     @relation(fields: [categoryId], references: [id])
+  category         Category       @relation(fields: [categoryId], references: [id])
   cityId           String
-  city             City         @relation(fields: [cityId], references: [id])
+  city             City           @relation(fields: [cityId], references: [id])
   organizerId      String?
-  organizer        Organizer?   @relation(fields: [organizerId], references: [id])
-  organizerType    String       @default("PUBLIC") // PUBLIC, PRIVATE, GOVERNMENT, SOCIAL
-  eventType        String       @default("OFFLINE") // OFFLINE, ONLINE, HYBRID
-  status           String       @default("DRAFT") // DRAFT, PENDING, PUBLISHED, REJECTED, EXPIRED, WATCHLIST
+  organizer        Organizer?     @relation(fields: [organizerId], references: [id])
+  organizerType    String         @default("PUBLIC") // PUBLIC, PRIVATE, GOVERNMENT, SOCIAL
+  eventType        String         @default("OFFLINE") // OFFLINE, ONLINE, HYBRID
+  status           String         @default("DRAFT") // DRAFT, PENDING, PUBLISHED, REJECTED, EXPIRED, WATCHLIST
   startDate        DateTime
   endDate          DateTime?
   startTime        String?
@@ -84,7 +84,7 @@ model Event {
   address          String?
   district         String?
   googleMapUrl     String?
-  priceType        String       @default("FREE") // FREE, PAID, REGISTRATION_REQUIRED, NOT_ANNOUNCED
+  priceType        String         @default("FREE") // FREE, PAID, REGISTRATION_REQUIRED, NOT_ANNOUNCED
   minPrice         Float?
   maxPrice         Float?
   registrationUrl  String?
@@ -95,17 +95,17 @@ model Event {
   bannerUrl        String?
   sourceName       String?
   sourceUrl        String?
-  isFeatured       Boolean      @default(false)
-  isTrending       Boolean      @default(false)
-  isVerified       Boolean      @default(false)
-  viewsCount       Int          @default(0)
-  shareCount       Int          @default(0)
+  isFeatured       Boolean        @default(false)
+  isTrending       Boolean        @default(false)
+  isVerified       Boolean        @default(false)
+  viewsCount       Int            @default(0)
+  shareCount       Int            @default(0)
   seoTitle         String?
   seoDescription   String?
   createdBy        String?
   approvedBy       String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   publishedAt      DateTime?
   images           EventImage[]
   registrations    Registration[]
@@ -143,11 +143,11 @@ model EventImage {
 }
 
 model EventSubmission {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   eventTitle        String
   category          String
   eventType         String
-  organizerType     String   @default("PUBLIC") // PUBLIC, PRIVATE, GOVERNMENT, SOCIAL
+  organizerType     String    @default("PUBLIC") // PUBLIC, PRIVATE, GOVERNMENT, SOCIAL
   description       String
   startDate         DateTime
   endDate           DateTime?
@@ -168,11 +168,11 @@ model EventSubmission {
   whatsapp          String?
   email             String?
   instagramUrl      String?
-  promotionInterest String?  // comma-separated list or JSON
-  status            String   @default("PENDING") // PENDING, APPROVED, REJECTED, NEEDS_INFO
+  promotionInterest String? // comma-separated list or JSON
+  status            String    @default("PENDING") // PENDING, APPROVED, REJECTED, NEEDS_INFO
   adminNotes        String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Lead {
@@ -181,7 +181,7 @@ model Lead {
   phone       String
   email       String
   companyName String?
-  leadType    String   // EVENT_LISTING, ADVERTISING, SPONSORSHIP, GENERAL, PARTNERSHIP
+  leadType    String // EVENT_LISTING, ADVERTISING, SPONSORSHIP, GENERAL, PARTNERSHIP
   message     String
   sourcePage  String?
   status      String   @default("NEW") // NEW, CONTACTED, CONVERTED, CLOSED
@@ -210,9 +210,119 @@ model Subscriber {
   email     String   @unique
   phone     String?
   city      String?
-  interests String?  // comma-separated
+  interests String? // comma-separated
   source    String?
   status    String   @default("ACTIVE") // ACTIVE, UNSUBSCRIBED
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// =============================================================
+// FIRST PAGE — BRAND LAB (Phase 1)
+// Data model per the Brand Lab build specification, §5.
+// Brand Lab is a lead-generation + quoting funnel: a visitor uploads a logo,
+// sees their own branding rendered across a 13-item kit, and hands over a
+// phone number only after the renders are on screen.
+// =============================================================
+
+model Brand {
+  id               String   @id @default(uuid())
+  businessName     String
+  phone            String?
+  category         String? // retail | office | restaurant | clinic | education | other
+  logoOriginalUrl  String?
+  logoProcessedUrl String? // background removed
+  palette          Json? // { primary, secondary, ink, paper }
+  orientation      String   @default("square") // horizontal | square | vertical
+  createdAt        DateTime @default(now())
+
+  renders     BrandRender[]
+  kitRequests KitRequest[]
+  events      BrandEvent[]
+
+  @@index([phone])
+  @@index([createdAt])
+}
+
+model MockupTemplate {
+  id            String  @id @default(uuid())
+  slug          String  @unique
+  name          String
+  category      String // stationery | outdoor | signage | apparel | digital
+  type          String // flat | photo
+  baseImageUrl  String?
+  shadingMapUrl String?
+  quad          Json? // [[x,y] x4] logo placement, image coordinates
+  safeArea      Json?
+  printSpecs    Json // { material, defaultSize, unit, notes }
+  variantFor    String  @default("any") // orientation this variant serves
+  sortOrder     Int     @default(0)
+  active        Boolean @default(true)
+
+  renders BrandRender[]
+}
+
+model BrandRender {
+  id          String         @id @default(uuid())
+  brandId     String
+  brand       Brand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  templateId  String
+  template    MockupTemplate @relation(fields: [templateId], references: [id])
+  previewUrl  String?
+  hiresUrl    String?
+  // Renders belonging to a brand that never converted are purged after 30 days
+  // (§9). Set once the brand reaches a kit request so the purge skips them.
+  convertedAt DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([brandId])
+  @@index([createdAt])
+}
+
+model KitRequest {
+  id                String    @id @default(uuid())
+  brandId           String
+  brand             Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  refCode           String    @unique // FP-8H3K
+  intent            String // full_kit | few_items | storefront | interior
+  selectedTemplates String[] // template slugs
+  // INTERNAL ONLY — computed from selected templates x print_specs unit rates
+  // so the team can call the Rs 80,000 signage lead before the Rs 1,200
+  // visiting-card lead. Never serialised to the browser.
+  estimatedValue    Float?
+  status            String    @default("new") // new | contacted | quoted | won | lost
+  contactName       String?
+  contactEmail      String?
+  adminNotes        String?
+  whatsappOpenedAt  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([estimatedValue])
+}
+
+model BrandEvent {
+  id        String   @id @default(uuid())
+  brandId   String?
+  name      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  brand Brand? @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  @@index([name, createdAt])
+}
+
+// Abuse control (§9): 5 kits per IP per day. The IP is stored only as a salted
+// hash — enough to count, not enough to identify.
+model BrandLabQuota {
+  id        String   @id @default(uuid())
+  key       String // sha256(salt + ip)
+  day       String // YYYY-MM-DD in IST
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, day])
 }
