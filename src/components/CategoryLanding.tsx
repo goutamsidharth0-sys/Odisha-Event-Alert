@@ -2,7 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseConfigured } from "@/lib/db";
 import { SITE_URL, breadcrumbJsonLd, faqJsonLd, categoryPath, cityPath } from "@/lib/seo";
 import SectionHead from "@/components/SectionHead";
 import Rise from "@/components/Rise";
@@ -14,7 +14,18 @@ const EVENT_INCLUDE = {
   city: { select: { name: true, slug: true } },
 } as const;
 
+/** "college-fests" -> "College Fests", for build-time renders without a database. */
+function titleFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export async function categoryMetadata(slug: string): Promise<Metadata> {
+  if (!isDatabaseConfigured()) {
+    return { title: `${titleFromSlug(slug)} in Odisha | Odisha Event Alert` };
+  }
   const category = await prisma.category.findUnique({
     where: { slug },
     select: { name: true, description: true, status: true },
@@ -36,14 +47,23 @@ export async function categoryMetadata(slug: string): Promise<Metadata> {
 }
 
 export default async function CategoryLanding({ slug }: { slug: string }) {
-  const category = await prisma.category.findUnique({ where: { slug } });
+  // Prerendered without a database (preview builds): render the page shell and
+  // let the existing empty state stand in. ISR replaces it on the first request
+  // served with a database.
+  const offline = !isDatabaseConfigured();
+
+  const category = offline
+    ? { id: "", name: titleFromSlug(slug), description: null, status: "ACTIVE" }
+    : await prisma.category.findUnique({ where: { slug } });
   if (!category || category.status !== "ACTIVE") notFound();
 
   const now = new Date();
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
 
-  const [upcomingEvents, upcomingCount, freeCount, cities, otherCategories] = await Promise.all([
+  const [upcomingEvents, upcomingCount, freeCount, cities, otherCategories] = offline
+    ? [[], 0, 0, [], []]
+    : await Promise.all([
     prisma.event.findMany({
       where: { status: "PUBLISHED", categoryId: category.id, startDate: { gte: startOfToday } },
       include: EVENT_INCLUDE,

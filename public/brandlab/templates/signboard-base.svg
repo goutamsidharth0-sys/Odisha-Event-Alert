@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+  <defs>
+    <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d4655"/><stop offset="1" stop-color="#6a7181"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3340"/><stop offset="1" stop-color="#404b5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1200" fill="url(#dusk)"/>
+  <rect x="120" y="180" width="1360" height="900" fill="#8d8579"/>
+  <rect x="120" y="180" width="1360" height="60" fill="#7a7266"/>
+  <rect x="150" y="620" width="1300" height="380" fill="url(#glass)"/>
+  <rect x="150" y="620" width="1300" height="380" fill="none" stroke="#6c7484" stroke-width="8"/>
+  <rect x="790" y="620" width="14" height="380" fill="#6c7484"/>
+  <rect y="1080" width="1600" height="120" fill="#4a4a4a"/>
+  <!-- signboard face, blank -->
+  <path d="M240 300 L1360 272 L1360 544 L240 572 Z" fill="#f7f5f0"/>
+  <path d="M240 300 L1360 272 L1360 288 L240 316 Z" fill="#ffffff" opacity="0.7"/>
+  <path d="M240 572 L1360 544 L1360 564 L240 592 Z" fill="#9a9186"/>
+</svg>

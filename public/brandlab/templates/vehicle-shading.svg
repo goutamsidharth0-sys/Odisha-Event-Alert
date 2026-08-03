@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d4d4d4"/><stop offset="0.18" stop-color="#ffffff"/>
+      <stop offset="0.52" stop-color="#f1f1f1"/><stop offset="0.72" stop-color="#c9c9c9"/>
+      <stop offset="1" stop-color="#e6e6e6"/>
+    </linearGradient>
+    <linearGradient id="hlight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a9a9a9"/><stop offset="0.2" stop-color="#ffffff"/>
+      <stop offset="0.75" stop-color="#fafafa"/><stop offset="1" stop-color="#bcbcbc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1200" fill="#ffffff"/>
+  <rect x="330" y="440" width="790" height="380" fill="url(#panel)"/>
+  <rect x="330" y="440" width="790" height="380" fill="url(#hlight)" opacity="0.55"/>
+</svg>

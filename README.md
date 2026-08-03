@@ -16,7 +16,10 @@ and gives admins a control room to curate everything.
 - **Vercel Cron** (`vercel.json`) hits `/api/cron/auto-scan` daily at 03:00 IST;
   admins can also hit **Scan Now** in the dashboard
 - **Admin panel** at `/admin` — stats, full events CRUD, the Auto-Scan radar
-  (scan history + discovered events), submissions review, leads
+  (scan history + discovered events), submissions review, leads, Brand Lab inbox
+- **Brand Lab** at `/brandlab` — First Page's branding visualiser: a visitor
+  uploads a logo and sees it composited onto a 13-item branding kit, entirely in
+  the browser at zero marginal cost. See [`docs/brandlab/`](docs/brandlab/)
 
 ## Environment variables
 
@@ -30,12 +33,17 @@ Copy `.env.example` to `.env` and fill in:
 | `CRON_SECRET` | Protects the cron endpoint (Vercel sends it automatically) |
 | `JWT_SECRET` | Signs admin session tokens |
 
+Brand Lab adds its own (all optional) variables — WhatsApp handoff number,
+Supabase Storage, hCaptcha and the IP-quota salt. They are documented in
+`.env.example` and in [`docs/brandlab/README.md`](docs/brandlab/README.md).
+
 ## Development
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
-npm run db:seed    # optional: reset + reseed the database
+npm run dev              # http://localhost:3000
+npm run db:seed          # optional: reset + reseed the database
+npm run db:seed:brandlab # sync the Brand Lab mockup templates
 ```
 
 Admin login: `/admin/login` (see seed script for the default account — change

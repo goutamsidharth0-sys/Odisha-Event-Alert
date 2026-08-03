@@ -5,6 +5,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 // We attach PrismaClient to the global object to prevent this.
 const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined };
 
+/**
+ * Whether a database is configured at all.
+ *
+ * The lazy proxy below already lets `next build` collect page data without a
+ * database, but statically prerendered pages still run their queries during the
+ * export step and take the whole build down with them. Preview deployments do
+ * not carry DATABASE_URL, so pages that prerender should check this and render
+ * their empty state instead of querying. ISR fills in real data on the first
+ * request served by an environment that does have a database.
+ */
+export function isDatabaseConfigured(): boolean {
+  return Boolean(process.env.DATABASE_URL);
+}
+
 function createClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
