@@ -2,7 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseConfigured } from "@/lib/db";
 import { SITE_URL, breadcrumbJsonLd, faqJsonLd, cityPath } from "@/lib/seo";
 import SectionHead from "@/components/SectionHead";
 import Rise from "@/components/Rise";
@@ -16,7 +16,18 @@ const EVENT_INCLUDE = {
 
 // Shared metadata builder — used by /city/[slug] and the keyword routes
 // (e.g. /events-in-bhubaneswar). Canonical always resolves to the keyword URL.
+/** "bhubaneswar" -> "Bhubaneswar", for build-time renders without a database. */
+function titleFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export async function cityMetadata(slug: string): Promise<Metadata> {
+  if (!isDatabaseConfigured()) {
+    return { title: `Events in ${titleFromSlug(slug)} | Odisha Event Alert` };
+  }
   const city = await prisma.city.findUnique({
     where: { slug },
     select: { name: true, description: true, status: true },
@@ -37,7 +48,14 @@ export async function cityMetadata(slug: string): Promise<Metadata> {
 }
 
 export default async function CityLanding({ slug }: { slug: string }) {
-  const city = await prisma.city.findUnique({ where: { slug } });
+  // Prerendered without a database (preview builds): render the page shell and
+  // let the existing empty state stand in. ISR replaces it on the first request
+  // served with a database.
+  const offline = !isDatabaseConfigured();
+
+  const city = offline
+    ? { id: "", name: titleFromSlug(slug), description: null, status: "ACTIVE" }
+    : await prisma.city.findUnique({ where: { slug } });
   if (!city || city.status !== "ACTIVE") notFound();
 
   const now = new Date();
@@ -46,8 +64,9 @@ export default async function CityLanding({ slug }: { slug: string }) {
   const inSevenDays = new Date(startOfToday);
   inSevenDays.setDate(inSevenDays.getDate() + 7);
 
-  const [upcomingEvents, newInCity, freeCount, weekCount, otherCities, categories] =
-    await Promise.all([
+  const [upcomingEvents, newInCity, freeCount, weekCount, otherCities, categories] = offline
+    ? [[], [], 0, 0, [], []]
+    : await Promise.all([
       prisma.event.findMany({
         where: { status: "PUBLISHED", cityId: city.id, startDate: { gte: startOfToday } },
         include: EVENT_INCLUDE,
